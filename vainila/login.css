@@ -1,0 +1,119 @@
+/* Reset básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #121216; /* Fondo oscuro */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: white;
+}
+
+.main-container {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+}
+
+/* Caja de Login */
+.login-box {
+    background-color: #1e1e24;
+    padding: 40px 30px;
+    border-radius: 25px;
+    text-align: center;
+    /* Efecto de borde punteado de la imagen */
+    border: 2px dashed rgba(255, 255, 255, 0.1);
+}
+
+/* Tipografía del Logo */
+.logo-container {
+    margin-bottom: 40px;
+}
+
+.logo-text {
+    font-size: 3rem;
+    font-weight: bold;
+    background: linear-gradient(90deg, #ff7e7e, #7b96ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 2px;
+}
+
+.sub-logo {
+    color: #a0a0a0;
+    font-family: monospace;
+    font-size: 1.2rem;
+    margin-top: -5px;
+}
+
+/* Formulario e Inputs */
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+input {
+    width: 100%;
+    padding: 15px;
+    background-color: #121216;
+    border: 1px solid #333;
+    border-radius: 8px;
+    color: white;
+    font-size: 1rem;
+}
+
+input::placeholder {
+    color: #666;
+}
+
+/* Botones */
+.btn-primary {
+    background: linear-gradient(90deg, #ff7e7e, #7b96ff);
+    border: none;
+    padding: 15px;
+    border-radius: 8px;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: opacity 0.3s;
+}
+
+.btn-secondary {
+    background: transparent;
+    border: 1px solid #7b96ff;
+    padding: 15px;
+    border-radius: 8px;
+    color: #7b96ff;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+    margin-top: 10px;
+}
+
+.btn-primary:hover, .btn-secondary:hover {
+    opacity: 0.8;
+}
+
+/* Enlace de olvido */
+.forgot-password {
+    color: #a0a0a0;
+    text-decoration: underline;
+    font-size: 0.9rem;
+    margin: 10px 0;
+}
+
+/* Ajustes para Desktop */
+@media (min-width: 768px) {
+    .main-container {
+        max-width: 450px;
+    }
+}
