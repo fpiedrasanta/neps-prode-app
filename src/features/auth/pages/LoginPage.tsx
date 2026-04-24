@@ -51,10 +51,11 @@ export default function LoginPage() {
 
       if (userId) {
         // Normalizar usuario para compatibilidad con el store: convertir null a undefined
-        const normalizedUser = {
+        const normalizedUser = response.user ? {
           ...response.user,
           countryId: response.user.countryId ?? undefined,
-        };
+        } : undefined;
+        
         setToken(response.token, userId, normalizedUser);
         navigate("/");
       } else {
@@ -265,10 +266,11 @@ export default function LoginPage() {
                           const userId = payload.sub;
                           
                           // Normalizar usuario para compatibilidad con el store: convertir null a undefined
-                          const normalizedUser = {
+                          const normalizedUser = data.user ? {
                             ...data.user,
                             countryId: data.user.countryId ?? undefined,
-                          };
+                          } : undefined;
+                          
                           setToken(data.token, userId, normalizedUser);
                           navigate("/");
                         } else {
