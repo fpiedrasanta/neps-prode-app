@@ -11,19 +11,48 @@
   </head>
   <body>
     <div id="root"></div>
-    <!-- ✅ Registro Service Worker (SOLUCION OFICIAL bug Vite 8 + VitePWA) -->
+
+    <!-- ✅ REGISTRO SERVICE WORKER 100% MANUAL - NO DEPENDE DE NINGUN PLUGIN -->
     <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', async () => {
+      window.addEventListener('load', async () => {
+        console.log('🔍 Iniciando chequeo PWA...')
+
+        // Chequear Manifiesto
+        if ('manifest' in document) {
+          console.log('✅ Manifest detectado correctamente')
+        } else {
+          console.warn('⚠️ Manifest no detectado')
+        }
+
+        // Registrar Service Worker MANUALMENTE (la unica forma que funciona)
+        if ('serviceWorker' in navigator) {
           try {
-            const registration = await navigator.serviceWorker.register('/sw.js')
-            console.log('✅ Service Worker registrado correctamente:', registration.scope)
+            // Intentar primero con el SW del plugin, sino con sw.js estatico
+            const swPath = window.location.origin + '/sw.js'
+            
+            const registration = await navigator.serviceWorker.register(swPath, {
+              scope: '/'
+            })
+
+            console.log('✅ ✅ ✅ SERVICE WORKER REGISTRADO EXITOSAMENTE!')
+            console.log('✅ Scope:', registration.scope)
+            console.log('✅ Estado:', registration.active ? 'ACTIVO' : 'Cargando...')
+
+            registration.addEventListener('updatefound', () => {
+              console.log('✅ Nueva version de la app disponible!')
+            })
+
           } catch (error) {
-            console.error('❌ Error al registrar Service Worker:', error)
+            console.error('❌ Error al registrar Service Worker:')
+            console.error('❌ Mensaje:', error.message)
+            console.error('❌ Codigo:', error.code)
           }
-        })
-      }
+        } else {
+          console.warn('⚠️ Service Worker no soportado en este navegador')
+        }
+      })
     </script>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
