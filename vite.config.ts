@@ -6,16 +6,16 @@ import path from "path";
 export default defineConfig({
   plugins: [
     react(),
-    VitePWA({
+      VitePWA({
       registerType: "autoUpdate",
       injectRegister: "auto",
-      manifestFilename: "manifest.json",
+      manifestFilename: "manifest.webmanifest",
       includeManifestIcons: false,
-      workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,json,webmanifest}"]
-      },
       devOptions: {
         enabled: true
+      },
+      workbox: {
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,json,webmanifest}"]
       },
       manifest: {
         name: "Neps Prode",
