@@ -10,8 +10,9 @@ export default defineConfig({
       registerType: "autoUpdate",
       injectRegister: "auto",
       manifestFilename: "manifest.webmanifest",
+      includeManifestIcons: false,
       workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,json}"]
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,json,webmanifest}"]
       },
       devOptions: {
         enabled: true
