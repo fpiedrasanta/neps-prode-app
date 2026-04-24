@@ -4,11 +4,16 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 
 export default defineConfig({
+  build: {
+    rollupOptions: {
+      external: ['virtual:pwa-register']
+    }
+  },
   plugins: [
     react(),
       VitePWA({
       registerType: "autoUpdate",
-      injectRegister: "auto",
+      injectRegister: "script",
       manifestFilename: "manifest.webmanifest",
       includeManifestIcons: false,
       devOptions: {

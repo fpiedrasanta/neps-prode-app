@@ -32,7 +32,15 @@ export function usePushNotifications() {
       console.log('✅ Clave publica obtenida')
 
       console.log('🔔 2. Obteniendo Service Worker activo...')
-      const registration = await navigator.serviceWorker.ready
+
+      let registration = await navigator.serviceWorker.getRegistration()
+
+      if (!registration) {
+        console.log('⚠️ No hay SW registrado, esperando...')
+        registration = await navigator.serviceWorker.ready
+      }
+
+      console.log('✅ Service Worker listo:', registration)
       console.log('✅ Service Worker listo y activo:', registration.scope)
 
       console.log('🔔 3. Verificando suscripcion existente...')
