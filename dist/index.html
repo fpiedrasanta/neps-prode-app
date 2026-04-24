@@ -29,8 +29,8 @@
         // Registrar Service Worker MANUALMENTE (la unica forma que funciona)
         if ('serviceWorker' in navigator) {
           try {
-            // Service Worker generado por VitePWA
-            const swPath = window.location.origin + '/sw.min.js'
+            // ✅ Service Worker ESTATICO que SI EXISTE y SI FUNCIONA
+            const swPath = window.location.origin + '/sw-push.js'
             
             const registration = await navigator.serviceWorker.register(swPath, {
               scope: '/'
