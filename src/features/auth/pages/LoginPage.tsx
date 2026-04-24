@@ -152,8 +152,10 @@ export default function LoginPage() {
           {isInstallable && (
             <Alert 
               severity="info" 
-              sx={{ width: "100%", mb: 2, cursor: 'pointer' }}
-              onClick={install}
+              sx={{ width: '100%', mb: 2, cursor: 'pointer', pointerEvents: 'auto' }}
+              onClick={(e) => install(e)}
+              icon={false}
+              action={false}
             >
               📥 Instalar la App para mejor experiencia
             </Alert>

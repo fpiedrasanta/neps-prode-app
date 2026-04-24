@@ -31,23 +31,42 @@ export function usePWAInstall() {
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
-  const install = async () => {
-    if (!deferredPrompt) return;
+  const install = async (event?: React.MouseEvent | Event) => {
+    // Prevenir comportamiento por defecto y propagacion
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    console.log('🔧 PWA Install button clicked');
+    console.log('📌 Deferred prompt exists:', !!deferredPrompt);
+
+    if (!deferredPrompt) {
+      console.warn('❌ No hay evento de instalacion guardado. El navegador no lo disparó.');
+      console.log('💡 Posible causa: La app ya esta instalada, o el navegador no cumple los requisitos PWA.');
+      return;
+    }
 
     try {
-      // Fix para Brave Browser: verificar que el método prompt existe
-      if (typeof deferredPrompt.prompt !== 'function') return;
-      
+      console.log('🚀 Abriendo prompt de instalacion...');
+
+      // ✅ IMPORTANTE: En Chrome / Brave NO puede haber ningun await ANTES de llamar a .prompt()
+      // El evento expira inmediatamente luego del gesto de usuario
       deferredPrompt.prompt();
+
       const { outcome } = await deferredPrompt.userChoice;
-      
+      console.log('✅ Usuario eligio:', outcome);
+
       if (outcome === 'accepted') {
+        console.log('✅ App instalada correctamente');
         setDeferredPrompt(null);
         setIsInstallable(false);
+      } else {
+        console.log('⚠️ Usuario canceló la instalacion');
       }
     } catch (error) {
-      // Fallback silencioso para navegadores que no soportan correctamente el evento
-      console.debug('PWA install prompt error:', error);
+      console.error('❌ Error al mostrar prompt de instalacion:', error);
+      console.log('ℹ️ Este error es normal en navegadores que no soportan completamente la API');
     }
   };
 
