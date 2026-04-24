@@ -17,6 +17,7 @@ import BottomNav from "@/shared/components/BottomNav";
 import RankingPage from "@/features/ranking/pages/RankingPage";
 import FriendsPage from "@/features/friends/pages/FriendsPage";
 import FeedPage from "@/features/social/pages/FeedPage";
+import { PWAButtons } from "@/shared/components/PWAButtons";
 
 // Layout con Header y BottomNav
 function MainLayout({ children }: { children: React.ReactNode }) {
@@ -43,6 +44,21 @@ function MainLayout({ children }: { children: React.ReactNode }) {
         {children}
       </Box>
       {!hideLayout && <BottomNav />}
+      
+      {/* Botones PWA Instalar + Notificaciones */}
+      {!hideLayout && (
+        <Box sx={{ 
+          position: 'fixed', 
+          bottom: 80, 
+          right: 16, 
+          zIndex: 1100,
+          flexDirection: 'column',
+          gap: 1
+        }}>
+          <PWAButtons />
+        </Box>
+      )}
+
       </ThemeProvider>
     </ErrorProvider>
   );

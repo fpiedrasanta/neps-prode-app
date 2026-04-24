@@ -5,6 +5,14 @@ export const PWAButtons = () => {
   const { isInstallable, install } = usePWAInstall()
   const { isSupported, permission, requestPermission, subscribe } = usePushNotifications()
 
+  // 🔧 DEBUG: Ver valores en consola
+  console.log('🔔 PWAButtons Debug:', {
+    isInstallable,
+    isSupported,
+    permission,
+    showNotifications: isSupported && permission === 'default'
+  })
+
   const handleNotifications = async () => {
     const granted = await requestPermission()
     if (granted) {
