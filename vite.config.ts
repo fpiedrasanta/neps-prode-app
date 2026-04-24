@@ -9,7 +9,7 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       injectRegister: "auto",
-      manifestFilename: "manifest.webmanifest",
+      manifestFilename: "manifest.json",
       includeManifestIcons: false,
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,json,webmanifest}"]
