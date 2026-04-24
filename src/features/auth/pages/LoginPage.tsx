@@ -50,7 +50,12 @@ export default function LoginPage() {
       const userId = payload.sub;
 
       if (userId) {
-        setToken(response.token, userId, response.user);
+        // Normalizar usuario para compatibilidad con el store: convertir null a undefined
+        const normalizedUser = {
+          ...response.user,
+          countryId: response.user.countryId ?? undefined,
+        };
+        setToken(response.token, userId, normalizedUser);
         navigate("/");
       } else {
         setError("Token inválido. Por favor, inténtalo de nuevo.");
@@ -259,7 +264,12 @@ export default function LoginPage() {
                           const payload = JSON.parse(atob(tokenParts[1]));
                           const userId = payload.sub;
                           
-                          setToken(data.token, userId, data.user);
+                          // Normalizar usuario para compatibilidad con el store: convertir null a undefined
+                          const normalizedUser = {
+                            ...data.user,
+                            countryId: data.user.countryId ?? undefined,
+                          };
+                          setToken(data.token, userId, normalizedUser);
                           navigate("/");
                         } else {
                           const errorData = await res.json().catch(() => ({}));

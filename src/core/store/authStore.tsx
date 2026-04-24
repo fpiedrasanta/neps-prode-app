@@ -3,10 +3,14 @@
 import { create } from "zustand";
 
 interface User {
-  id: string;
+  id?: string;
   fullName: string;
   email: string;
   avatarUrl?: string | null;
+  countryId?: string;
+  countryDescription?: string;
+  roles?: string[];
+  requiresEmailVerification?: boolean;
 }
 
 interface AuthState {
