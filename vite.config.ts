@@ -8,9 +8,10 @@ export default defineConfig({
   plugins: [
     react(),
       VitePWA({
+      filename: "sw.js",
       registerType: "autoUpdate",
       injectRegister: "script",
-      manifestFilename: "manifest.webmanifest",
+      manifestFilename: "manifest.json",
       includeManifestIcons: false,
       devOptions: {
         enabled: true
