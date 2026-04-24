@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <button onclick="test()">TEST PUSH</button>
+  <script>
+    async function test() {
+      console.log('✅ Probando paso a paso:')
+
+      console.log('1. Pedir permiso...')
+      const perm = await Notification.requestPermission()
+      console.log('✅ Permiso:', perm)
+
+      console.log('2. Esperando SW...')
+      const reg = await navigator.serviceWorker.ready
+      console.log('✅ SW listo:', reg)
+
+      console.log('3. Buscando clave publica...')
+      const res = await fetch('/api/PushNotifications/public-key')
+      const key = await res.text()
+      console.log('✅ Clave publica:', key)
+
+      console.log('4. Suscribiendo...')
+      
+      function urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
+        const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
+        const rawData = window.atob(base64)
+        return Uint8Array.from([...rawData].map(char => char.charCodeAt(0)))
+      }
+
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(key.trim())
+      })
+
+      console.log('✅ Suscripcion:', sub)
+
+      console.log('5. Enviando al backend...')
+      await fetch('/api/PushNotifications/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sub)
+      })
+
+      console.log('✅ TODO TERMINADO!')
+      alert('TODO OK! Mirar Network tab')
+    }
+  </script>
+</body>
+</html>
