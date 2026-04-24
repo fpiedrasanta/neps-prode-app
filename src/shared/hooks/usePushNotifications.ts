@@ -34,8 +34,17 @@ export function usePushNotifications() {
       console.log('✅ Clave publica obtenida:', publicKey.substring(0, 30) + '...')
 
       console.log('🔔 2. Obteniendo Service Worker...')
-      const registration = await navigator.serviceWorker.ready
-      console.log('✅ Service Worker listo')
+      
+      // ✅ Solucion definitiva para Service Worker no listo
+      let registration = await navigator.serviceWorker.getRegistration()
+      
+      if (!registration) {
+        console.log('⚠️ Service Worker no encontrado, esperando 1 segundo...')
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        registration = await navigator.serviceWorker.ready
+      }
+
+      console.log('✅ Service Worker listo:', registration.scope)
 
       console.log('🔔 3. Generando suscripcion Push...')
       const pushSubscription = await registration.pushManager.subscribe({
