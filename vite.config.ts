@@ -20,11 +20,20 @@ export default defineConfig({
         display: "standalone",
         icons: [
           {
-            src: "/favicon.svg",
-            sizes: "any",
-            type: "image/svg+xml"
+            src: "/icons.svg",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "any maskable"
+          },
+          {
+            src: "/icons.svg",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "any maskable"
           }
-        ]
+        ],
+        scope: "/",
+        start_url: "/"
       }
     })
   ],
