@@ -16,44 +16,49 @@ export function usePushNotifications() {
   const [subscription, setSubscription] = useState<PushSubscription | null>(null)
   const [loading, setLoading] = useState(false)
 
-  const requestPermission = async () => {
+  const requestPermissionAndSubscribe = async () => {
     if (!isSupported) return false
 
     const result = await Notification.requestPermission()
     setPermission(result)
-    return result === 'granted'
-  }
+    
+    if (result !== 'granted') return false
 
-  const subscribe = async () => {
-    if (!isSupported || permission !== 'granted') return null
     setLoading(true)
 
     try {
-      // 1️⃣ Obtener clave publica directamente del Backend
+      console.log('🔔 1. Obteniendo clave publica del backend...')
       const publicKeyRes = await fetch(`${API_CONFIG.apiUrl}/PushNotifications/public-key`)
-      const publicKey = await publicKeyRes.text()
+      const data = await publicKeyRes.json()
+      const publicKey = data.publicKey
+      console.log('✅ Clave publica obtenida:', publicKey.substring(0, 30) + '...')
 
-      // 2️⃣ Suscribir al Service Worker
+      console.log('🔔 2. Obteniendo Service Worker...')
       const registration = await navigator.serviceWorker.ready
+      console.log('✅ Service Worker listo')
+
+      console.log('🔔 3. Generando suscripcion Push...')
       const pushSubscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(publicKey.trim())
       })
+      console.log('✅ Suscripcion generada')
       
-      // 3️⃣ Enviar suscripcion al Backend para guardar
+      console.log('🔔 4. Enviando suscripcion al backend...')
       await fetch(`${API_CONFIG.apiUrl}/PushNotifications/subscribe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(pushSubscription)
       })
+      console.log('✅ Suscripcion enviada correctamente al backend')
 
       setSubscription(pushSubscription)
       setLoading(false)
-      return pushSubscription
+      return true
     } catch (error) {
-      console.error('Error al suscribirse a notificaciones:', error)
+      console.error('❌ Error al suscribirse a notificaciones:', error)
       setLoading(false)
-      return null
+      return false
     }
   }
 
@@ -74,8 +79,7 @@ export function usePushNotifications() {
     permission,
     subscription,
     loading,
-    requestPermission,
-    subscribe,
+    requestPermissionAndSubscribe,
     unsubscribe
   }
 }

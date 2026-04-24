@@ -1,28 +1,16 @@
 import { usePushNotifications } from '../hooks/usePushNotifications'
 
 export const PWAButtons = () => {
-  const { isSupported, permission, subscription, requestPermission, subscribe } = usePushNotifications()
+  const { isSupported, permission, subscription, loading, requestPermissionAndSubscribe } = usePushNotifications()
 
   // 🔧 DEBUG: Ver valores en consola
   console.log('🔔 PWAButtons Debug:', {
     isSupported,
     permission,
     subscription,
+    loading,
     showNotifications: isSupported && !subscription
   })
-
-  const handleNotifications = async () => {
-    const granted = await requestPermission()
-    if (granted) {
-      // ✅ ESPERAMOS 150ms para que el Service Worker se actualice luego del permiso
-      setTimeout(async () => {
-        const subscription = await subscribe()
-        if (subscription) {
-          console.log('✅ Usuario suscripto a notificaciones y enviado al backend:', subscription)
-        }
-      }, 150)
-    }
-  }
 
   // ✅ MOSTRAR BOTON SI: Aun no intentamos suscribirnos, aun sin permiso
   const showNotificationsButton = isSupported && !subscription
@@ -32,7 +20,8 @@ export const PWAButtons = () => {
       
       {showNotificationsButton && (
         <button 
-          onClick={handleNotifications}
+          onClick={requestPermissionAndSubscribe}
+          disabled={loading}
           style={{
             padding: '8px 16px',
             backgroundColor: '#2e7d32',
