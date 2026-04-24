@@ -34,12 +34,20 @@ export function usePWAInstall() {
   const install = async () => {
     if (!deferredPrompt) return;
 
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-      setDeferredPrompt(null);
-      setIsInstallable(false);
+    try {
+      // Fix para Brave Browser: verificar que el método prompt existe
+      if (typeof deferredPrompt.prompt !== 'function') return;
+      
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      
+      if (outcome === 'accepted') {
+        setDeferredPrompt(null);
+        setIsInstallable(false);
+      }
+    } catch (error) {
+      // Fallback silencioso para navegadores que no soportan correctamente el evento
+      console.debug('PWA install prompt error:', error);
     }
   };
 

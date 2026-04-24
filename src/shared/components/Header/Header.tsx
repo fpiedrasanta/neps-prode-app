@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/core/store/authStore';
 import { styled } from '@mui/material/styles';
 import { getResourceUrl } from '@/shared/config/api';
+import { PWAInstallButton } from '@/shared/components/PWAInstallButton';
 
 const StyledHeader = styled(Box)(() => ({
   position: 'fixed',
@@ -95,27 +96,39 @@ export default function Header() {
           </Typography>
         </Box>
 
-        <IconButton
-          onClick={handleClick}
-          size="small"
-          sx={{
-            width: 40,
-            height: 40,
-            border: '2px solid rgba(255,255,255,0.2)',
-          }}
-        >
-          <Avatar
-            src={user?.avatarUrl ? getResourceUrl(user.avatarUrl) : undefined}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <PWAInstallButton variant="icon" />
+
+          <IconButton
+            onClick={handleClick}
+            size="small"
             sx={{
-              width: 32,
-              height: 32,
-              bgcolor: '#7b96ff',
-              fontSize: '0.875rem',
+              width: 40,
+              height: 40,
+              border: '2px solid rgba(255,255,255,0.2)',
             }}
           >
-            {user?.fullName ? user.fullName.substring(0, 2).toUpperCase() : 'U'}
-          </Avatar>
-        </IconButton>
+            <Avatar
+              src={user?.avatarUrl ? getResourceUrl(user.avatarUrl) : undefined}
+              sx={{
+                width: 32,
+                height: 32,
+                bgcolor: '#7b96ff',
+                fontSize: '0.875rem',
+              }}
+            >
+              {user?.fullName 
+                ? user.fullName
+                    .split(' ')
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .map(name => name[0])
+                    .join('')
+                    .toUpperCase() 
+                : 'U'}
+            </Avatar>
+          </IconButton>
+        </Box>
       </StyledHeader>
 
       <Menu
