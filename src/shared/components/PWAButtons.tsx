@@ -1,19 +1,18 @@
 import { usePushNotifications } from '../hooks/usePushNotifications'
 
 export const PWAButtons = () => {
-  const { isSupported, permission, subscription, loading, requestPermissionAndSubscribe } = usePushNotifications()
+  const { isSupported, permission, loading, requestPermissionAndSubscribe } = usePushNotifications()
 
   // 🔧 DEBUG: Ver valores en consola
   console.log('🔔 PWAButtons Debug:', {
     isSupported,
     permission,
-    subscription,
     loading,
-    showNotifications: isSupported && !subscription
+    showNotifications: isSupported && permission === 'default'
   })
 
-  // ✅ MOSTRAR BOTON SI: Aun no intentamos suscribirnos, aun sin permiso
-  const showNotificationsButton = isSupported && !subscription
+  // ✅ MOSTRAR BOTON SOLAMENTE SI EL USUARIO AUN NO TOMO NINGUNA DECISION
+  const showNotificationsButton = isSupported && permission === 'default'
 
   return (
     <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>

@@ -10,17 +10,15 @@ function urlBase64ToUint8Array(base64String: string) {
 
 export function usePushNotifications() {
   const [isSupported] = useState(() => 'serviceWorker' in navigator && 'PushManager' in window)
-  const [permission, setPermission] = useState<NotificationPermission>(() => 
+  const [permission] = useState<NotificationPermission>(() => 
     'Notification' in window ? Notification.permission : 'default'
   )
-  const [subscription, setSubscription] = useState<PushSubscription | null>(null)
   const [loading, setLoading] = useState(false)
 
   const requestPermissionAndSubscribe = async () => {
     if (!isSupported) return false
 
     const result = await Notification.requestPermission()
-    setPermission(result)
     
     if (result !== 'granted') return false
 
@@ -31,37 +29,35 @@ export function usePushNotifications() {
       const publicKeyRes = await fetch(`${API_CONFIG.apiUrl}/PushNotifications/public-key`)
       const data = await publicKeyRes.json()
       const publicKey = data.publicKey
-      console.log('✅ Clave publica obtenida:', publicKey.substring(0, 30) + '...')
+      console.log('✅ Clave publica obtenida')
 
-      console.log('🔔 2. Obteniendo Service Worker...')
-      
-      // ✅ Solucion definitiva para Service Worker no listo
-      let registration = await navigator.serviceWorker.getRegistration()
-      
-      if (!registration) {
-        console.log('⚠️ Service Worker no encontrado, esperando 1 segundo...')
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        registration = await navigator.serviceWorker.ready
+      console.log('🔔 2. Obteniendo Service Worker activo...')
+      const registration = await navigator.serviceWorker.ready
+      console.log('✅ Service Worker listo y activo:', registration.scope)
+
+      console.log('🔔 3. Verificando suscripcion existente...')
+      let pushSubscription = await registration.pushManager.getSubscription()
+      console.log('📌 Suscripcion existente:', !!pushSubscription)
+
+      if (!pushSubscription) {
+        console.log('🔔 Generando nueva suscripcion Push...')
+        pushSubscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(publicKey.trim())
+        })
+        console.log('✅ Nueva suscripcion generada')
+      } else {
+        console.log('⚠️ Suscripcion ya existe, reutilizando')
       }
-
-      console.log('✅ Service Worker listo:', registration.scope)
-
-      console.log('🔔 3. Generando suscripcion Push...')
-      const pushSubscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(publicKey.trim())
-      })
-      console.log('✅ Suscripcion generada')
       
       console.log('🔔 4. Enviando suscripcion al backend...')
       await fetch(`${API_CONFIG.apiUrl}/PushNotifications/subscribe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(pushSubscription)
+        body: JSON.stringify(pushSubscription.toJSON())
       })
       console.log('✅ Suscripcion enviada correctamente al backend')
 
-      setSubscription(pushSubscription)
       setLoading(false)
       return true
     } catch (error) {
@@ -72,11 +68,23 @@ export function usePushNotifications() {
   }
 
   const unsubscribe = async () => {
-    if (!subscription) return false
     try {
-      const success = await subscription.unsubscribe()
-      setSubscription(null)
-      return success
+      const registration = await navigator.serviceWorker.ready
+      const subscription = await registration.pushManager.getSubscription()
+      
+      if (subscription) {
+        await fetch(`${API_CONFIG.apiUrl}/PushNotifications/unsubscribe`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(subscription.toJSON())
+        })
+
+        await subscription.unsubscribe()
+        console.log('✅ Desuscrito correctamente')
+        return true
+      }
+
+      return false
     } catch (error) {
       console.error('Error al desuscribirse:', error)
       return false
@@ -86,7 +94,6 @@ export function usePushNotifications() {
   return {
     isSupported,
     permission,
-    subscription,
     loading,
     requestPermissionAndSubscribe,
     unsubscribe
