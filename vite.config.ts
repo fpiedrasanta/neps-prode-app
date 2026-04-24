@@ -9,6 +9,7 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       injectRegister: "auto",
+      manifestFilename: "manifest.webmanifest",
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,json}"]
       },
@@ -22,15 +23,15 @@ export default defineConfig({
         theme_color: "#1976d2",
         background_color: "#ffffff",
         display: "standalone",
-        icons: [
+       icons: [
           {
-            src: "/icons.svg",
+            src: "/neps-logo.png",
             sizes: "192x192",
             type: "image/png",
             purpose: "any maskable"
           },
           {
-            src: "/icons.svg",
+            src: "/neps-logo.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "any maskable"
