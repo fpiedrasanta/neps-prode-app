@@ -1,23 +1,26 @@
 import { useState, useEffect } from 'react';
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
+// Valor inicial calculado una única vez al montar el hook
+const getInitialInstalledState = () => window.matchMedia('(display-mode: standalone)').matches;
+
 export function usePWAInstall() {
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [isInstallable, setIsInstallable] = useState(false);
-  const [isInstalled, setIsInstalled] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [isInstallable, setIsInstallable] = useState(!getInitialInstalledState());
+  const [isInstalled, setIsInstalled] = useState(getInitialInstalledState());
 
   useEffect(() => {
     const handler = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e);
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
       setIsInstallable(true);
     };
 
     window.addEventListener('beforeinstallprompt', handler);
-
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setIsInstalled(true);
-      setIsInstallable(false);
-    }
 
     window.addEventListener('appinstalled', () => {
       setIsInstalled(true);

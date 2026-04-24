@@ -20,6 +20,7 @@ import { useAuthStore } from "@/core/store/authStore";
 import { theme } from "@/shared/theme";
 import { Button, Input } from "@/shared/components";
 import { API_CONFIG } from '@/shared/config/api';
+import { PWAInstallButton } from "@/shared/components/PWAInstallButton";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -274,6 +275,8 @@ export default function LoginPage() {
                 Continuar con Google
               </Box>
             </Button>
+
+            <PWAInstallButton variant="button" />
           </Box>
         </Paper>
       </Container>
