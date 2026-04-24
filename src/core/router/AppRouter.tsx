@@ -1,10 +1,11 @@
 // src/core/router/AppRouter.tsx
 
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import { Box, CssBaseline, ThemeProvider } from "@mui/material";
+import { Box, CssBaseline, ThemeProvider, Button, Snackbar, Alert } from "@mui/material";
 import { theme } from "@/shared/theme";
 import { ErrorProvider } from "@/core/context/ErrorContext";
 import ErrorBoundary from "@/core/components/ErrorBoundary";
+import { usePWAInstall } from "@/shared/hooks/usePWAInstall";
 import LoginPage from "@/features/auth/pages/LoginPage";
 import RegisterPage from "@/features/auth/pages/RegisterPage";
 import ForgotPasswordPage from "@/features/auth/pages/ForgotPasswordPage";
@@ -21,6 +22,8 @@ import FeedPage from "@/features/social/pages/FeedPage";
 // Layout con Header y BottomNav
 function MainLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
+  const { isInstallable, install } = usePWAInstall();
+  
   const hideLayout = 
     location.pathname === '/login' || 
     location.pathname === '/register' ||
@@ -30,6 +33,25 @@ function MainLayout({ children }: { children: React.ReactNode }) {
     <ErrorProvider>
       <ThemeProvider theme={theme}>
       <CssBaseline />
+
+      {/* Banner Instalar PWA */}
+      <Snackbar
+        open={isInstallable && !hideLayout}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        sx={{ mt: 8 }}
+      >
+        <Alert
+          severity="info"
+          action={
+            <Button color="primary" size="small" onClick={install}>
+              INSTALAR
+            </Button>
+          }
+        >
+          Instalá la app para usarla como aplicación nativa
+        </Alert>
+      </Snackbar>
+
       {!hideLayout && <Header />}
       <Box
         sx={{

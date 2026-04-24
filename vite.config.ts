@@ -8,6 +8,24 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
+      devOptions: {
+        enabled: true
+      },
+      manifest: {
+        name: "Neps Prode",
+        short_name: "Prode",
+        description: "App de Prode Neps",
+        theme_color: "#1976d2",
+        background_color: "#ffffff",
+        display: "standalone",
+        icons: [
+          {
+            src: "/favicon.svg",
+            sizes: "any",
+            type: "image/svg+xml"
+          }
+        ]
+      }
     })
   ],
   resolve: {
