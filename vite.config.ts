@@ -8,7 +8,7 @@ export default defineConfig({
   plugins: [
     react(),
       VitePWA({
-      filename: "sw.js",
+      filename: "sw.min.js",
       registerType: "autoUpdate",
       injectRegister: "script",
       manifestFilename: "manifest.json",

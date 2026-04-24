@@ -27,8 +27,8 @@
         // Registrar Service Worker MANUALMENTE (la unica forma que funciona)
         if ('serviceWorker' in navigator) {
           try {
-            // Intentar primero con el SW del plugin, sino con sw.js estatico
-            const swPath = window.location.origin + '/sw.js'
+            // Service Worker generado por VitePWA
+            const swPath = window.location.origin + '/sw.min.js'
             
             const registration = await navigator.serviceWorker.register(swPath, {
               scope: '/'
