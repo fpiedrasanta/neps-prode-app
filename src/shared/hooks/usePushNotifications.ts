@@ -1,6 +1,5 @@
 import { useState } from 'react'
-
-const VAPID_PUBLIC_KEY = 'BKU5mQRu7ALt1SXg2OcNOvdJVsV7WY5AvvK5Fdas1UXhJmzYWUbbAPprMP-HYm-w2UEh8wVZC-u1CXuPA7K6Ht8'
+import { API_CONFIG } from '@/shared/config/api'
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
@@ -15,6 +14,7 @@ export function usePushNotifications() {
     'Notification' in window ? Notification.permission : 'default'
   )
   const [subscription, setSubscription] = useState<PushSubscription | null>(null)
+  const [loading, setLoading] = useState(false)
 
   const requestPermission = async () => {
     if (!isSupported) return false
@@ -26,18 +26,33 @@ export function usePushNotifications() {
 
   const subscribe = async () => {
     if (!isSupported || permission !== 'granted') return null
+    setLoading(true)
 
     try {
+      // 1️⃣ Obtener clave publica directamente del Backend
+      const publicKeyRes = await fetch(`${API_CONFIG.apiUrl}/PushNotifications/public-key`)
+      const publicKey = await publicKeyRes.text()
+
+      // 2️⃣ Suscribir al Service Worker
       const registration = await navigator.serviceWorker.ready
       const pushSubscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        applicationServerKey: urlBase64ToUint8Array(publicKey.trim())
       })
       
+      // 3️⃣ Enviar suscripcion al Backend para guardar
+      await fetch(`${API_CONFIG.apiUrl}/PushNotifications/subscribe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(pushSubscription)
+      })
+
       setSubscription(pushSubscription)
+      setLoading(false)
       return pushSubscription
     } catch (error) {
       console.error('Error al suscribirse a notificaciones:', error)
+      setLoading(false)
       return null
     }
   }
@@ -58,6 +73,7 @@ export function usePushNotifications() {
     isSupported,
     permission,
     subscription,
+    loading,
     requestPermission,
     subscribe,
     unsubscribe
