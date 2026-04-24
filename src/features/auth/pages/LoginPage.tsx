@@ -20,13 +20,14 @@ import { useAuthStore } from "@/core/store/authStore";
 import { theme } from "@/shared/theme";
 import { Button, Input } from "@/shared/components";
 import { API_CONFIG } from '@/shared/config/api';
-import { PWAInstallButton } from "@/shared/components/PWAInstallButton";
+import { usePWAInstall } from "@/shared/hooks/usePWAInstall";
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const setToken = useAuthStore((state) => state.setToken);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const { isInstallable, install } = usePWAInstall();
 
   const {
     register,
@@ -121,6 +122,16 @@ export default function LoginPage() {
           {error && (
             <Alert severity="error" sx={{ width: "100%", mb: 2 }}>
               {error}
+            </Alert>
+          )}
+
+          {isInstallable && (
+            <Alert 
+              severity="info" 
+              sx={{ width: "100%", mb: 2, cursor: 'pointer' }}
+              onClick={install}
+            >
+              📥 Instalar la App para mejor experiencia
             </Alert>
           )}
 
@@ -276,7 +287,6 @@ export default function LoginPage() {
               </Box>
             </Button>
 
-            <PWAInstallButton variant="button" />
           </Box>
         </Paper>
       </Container>

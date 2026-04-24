@@ -108,25 +108,26 @@ export default function Header() {
               border: '2px solid rgba(255,255,255,0.2)',
             }}
           >
-            <Avatar
-              src={user?.avatarUrl ? getResourceUrl(user.avatarUrl) : undefined}
-              sx={{
-                width: 32,
-                height: 32,
-                bgcolor: '#7b96ff',
-                fontSize: '0.875rem',
-              }}
-            >
-              {user?.fullName 
-                ? user.fullName
-                    .split(' ')
-                    .filter(Boolean)
-                    .slice(0, 2)
-                    .map(name => name[0])
-                    .join('')
-                    .toUpperCase() 
+          <Avatar
+            src={user?.avatarUrl ? getResourceUrl(user.avatarUrl) : undefined}
+            sx={{
+              width: 32,
+              height: 32,
+              bgcolor: '#7b96ff',
+              fontSize: '0.875rem',
+            }}
+            alt={user?.fullName || 'Usuario'}
+          >
+            {!user?.avatarUrl && user?.fullName 
+              ? user.fullName
+                  .split(' ')
+                  .filter(Boolean)
+                  .slice(0, 2)
+                  .map(name => name[0])
+                  .join('')
+                  .toUpperCase() 
                 : 'U'}
-            </Avatar>
+          </Avatar>
           </IconButton>
         </Box>
       </StyledHeader>
