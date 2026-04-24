@@ -50,11 +50,29 @@ export default function LoginPage() {
       const userId = payload.sub;
 
       if (userId) {
-        // Normalizar usuario para compatibilidad con el store: convertir null a undefined
-        const normalizedUser = response.user ? {
-          ...response.user,
-          countryId: response.user.countryId ?? undefined,
-        } : undefined;
+        // ✅ Ambos endpoints devuelven TODOS los campos directamente en la raiz
+        // Cast al tipo real que devuelve la API (no coincide con la definicion AuthResponse actual)
+        const apiResponse = response as unknown as {
+          token: string;
+          fullName: string;
+          email: string;
+          avatarUrl: string | null;
+          countryId: string | null;
+          countryDescription: string | null;
+          roles: string[];
+          requiresEmailVerification: boolean;
+        };
+
+        const normalizedUser = {
+          id: userId,
+          fullName: apiResponse.fullName,
+          email: apiResponse.email,
+          avatarUrl: apiResponse.avatarUrl,
+          countryId: apiResponse.countryId ?? undefined,
+          countryDescription: apiResponse.countryDescription ?? undefined,
+          roles: apiResponse.roles,
+          requiresEmailVerification: apiResponse.requiresEmailVerification,
+        };
         
         setToken(response.token, userId, normalizedUser);
         navigate("/");
@@ -265,11 +283,17 @@ export default function LoginPage() {
                           const payload = JSON.parse(atob(tokenParts[1]));
                           const userId = payload.sub;
                           
-                          // Normalizar usuario para compatibilidad con el store: convertir null a undefined
-                          const normalizedUser = data.user ? {
-                            ...data.user,
-                            countryId: data.user.countryId ?? undefined,
-                          } : undefined;
+                          // ✅ El endpoint de Google devuelve los campos user DIRECTAMENTE en la raiz, NO dentro de .user
+                          const normalizedUser = {
+                            id: userId,
+                            fullName: data.fullName,
+                            email: data.email,
+                            avatarUrl: data.avatarUrl,
+                            countryId: data.countryId ?? undefined,
+                            countryDescription: data.countryDescription,
+                            roles: data.roles,
+                            requiresEmailVerification: data.requiresEmailVerification,
+                          };
                           
                           setToken(data.token, userId, normalizedUser);
                           navigate("/");
