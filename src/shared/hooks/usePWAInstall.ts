@@ -10,16 +10,18 @@ const getInitialInstalledState = () => window.matchMedia('(display-mode: standal
 
 export function usePWAInstall() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isInstallable, setIsInstallable] = useState(!getInitialInstalledState());
+  const [isInstallable, setIsInstallable] = useState(false);
   const [isInstalled, setIsInstalled] = useState(getInitialInstalledState());
 
   useEffect(() => {
     const handler = (e: Event) => {
+      console.log('✅ Evento beforeinstallprompt RECIBIDO correctamente');
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       setIsInstallable(true);
     };
 
+    console.log('🔍 Registrando listener para beforeinstallprompt');
     window.addEventListener('beforeinstallprompt', handler);
 
     window.addEventListener('appinstalled', () => {
