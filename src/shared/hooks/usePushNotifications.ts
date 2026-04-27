@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { API_CONFIG } from '@/shared/config/api'
+import { api } from '@/core/api/axios'
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
@@ -27,17 +27,12 @@ export function usePushNotifications() {
 
     try {
       console.log('🔔 1. Obteniendo clave publica del backend...')
-      const publicKeyRes = await fetch(`${API_CONFIG.apiUrl}/PushNotifications/public-key`)
-      const publicKeyText = await publicKeyRes.text()
+      const publicKeyRes = await api.get('/PushNotifications/public-key')
       
       console.log('📡 Response status:', publicKeyRes.status)
-      console.log('📡 Response body:', publicKeyText)
+      console.log('📡 Response body:', publicKeyRes.data)
       
-      if (!publicKeyRes.ok) {
-        throw new Error(`HTTP ${publicKeyRes.status}: ${publicKeyText}`)
-      }
-      
-      const data = JSON.parse(publicKeyText)
+      const data = publicKeyRes.data
       const publicKey = data.publicKey
       console.log('✅ Clave publica obtenida')
       
@@ -72,19 +67,10 @@ export function usePushNotifications() {
       }
       
       console.log('🔔 4. Enviando suscripcion al backend...')
-      const subscribeRes = await fetch(`${API_CONFIG.apiUrl}/PushNotifications/subscribe`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(pushSubscription.toJSON())
-      })
-      const subscribeText = await subscribeRes.text()
+      const subscribeRes = await api.post('/PushNotifications/subscribe', pushSubscription.toJSON())
       
       console.log('📡 Response status:', subscribeRes.status)
-      console.log('📡 Response body:', subscribeText)
-      
-      if (!subscribeRes.ok) {
-        throw new Error(`HTTP ${subscribeRes.status}: ${subscribeText}`)
-      }
+      console.log('📡 Response body:', subscribeRes.data)
       
       console.log('✅ Suscripcion enviada correctamente al backend')
 
@@ -103,19 +89,10 @@ export function usePushNotifications() {
       const subscription = await registration.pushManager.getSubscription()
       
       if (subscription) {
-        const unsubscribeRes = await fetch(`${API_CONFIG.apiUrl}/PushNotifications/unsubscribe`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(subscription.toJSON())
-        })
-        const unsubscribeText = await unsubscribeRes.text()
+        const unsubscribeRes = await api.post('/PushNotifications/unsubscribe', subscription.toJSON())
         
         console.log('📡 Response status:', unsubscribeRes.status)
-        console.log('📡 Response body:', unsubscribeText)
-        
-        if (!unsubscribeRes.ok) {
-          throw new Error(`HTTP ${unsubscribeRes.status}: ${unsubscribeText}`)
-        }
+        console.log('📡 Response body:', unsubscribeRes.data)
 
         await subscription.unsubscribe()
         console.log('✅ Desuscrito correctamente')
