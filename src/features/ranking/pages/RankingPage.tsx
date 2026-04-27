@@ -120,9 +120,9 @@ const RankingPage = () => {
               {getAvatar(user)}
                <div className="user-details">
                  <span className="user-name">{user.fullName}</span>
-                 <span className={`user-points ${user.totalPoints < 0 ? 'negative' : 'positive'}`}>
-                   {user.totalPoints < 0 ? `-1` : `+${user.totalPoints ?? 0}`} pts
-                 </span>
+                  <span className={`user-points ${user.totalPoints < 0 ? 'negative' : 'positive'}`}>
+                    {user.totalPoints < 0 ? `${user.totalPoints}` : `+${user.totalPoints ?? 0}`} pts
+                  </span>
                </div>
             </div>
             {getPositionBadge(user.position)}

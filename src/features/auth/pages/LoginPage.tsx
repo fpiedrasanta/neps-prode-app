@@ -24,7 +24,7 @@ import { usePWAInstall } from "@/shared/hooks/usePWAInstall";
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const setToken = useAuthStore((state) => state.setToken);
+  const setTokens = useAuthStore((state) => state.setTokens);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { isInstallable, install } = usePWAInstall();
@@ -54,6 +54,7 @@ export default function LoginPage() {
         // Cast al tipo real que devuelve la API (no coincide con la definicion AuthResponse actual)
         const apiResponse = response as unknown as {
           token: string;
+          refreshToken: string;
           fullName: string;
           email: string;
           avatarUrl: string | null;
@@ -74,7 +75,7 @@ export default function LoginPage() {
           requiresEmailVerification: apiResponse.requiresEmailVerification,
         };
         
-        setToken(response.token, userId, normalizedUser);
+        setTokens(response.token, apiResponse.refreshToken, userId, normalizedUser);
         navigate("/");
       } else {
         setError("Token inválido. Por favor, inténtalo de nuevo.");
@@ -297,7 +298,7 @@ export default function LoginPage() {
                             requiresEmailVerification: data.requiresEmailVerification,
                           };
                           
-                          setToken(data.token, userId, normalizedUser);
+                          setTokens(data.token, data.refreshToken, userId, normalizedUser);
                           navigate("/");
                         } else {
                           const errorData = await res.json().catch(() => ({}));

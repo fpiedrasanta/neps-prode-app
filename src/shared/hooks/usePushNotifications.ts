@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { api } from '@/core/api/axios'
 
 function urlBase64ToUint8Array(base64String: string) {
@@ -8,22 +8,110 @@ function urlBase64ToUint8Array(base64String: string) {
   return Uint8Array.from([...rawData].map(char => char.charCodeAt(0)))
 }
 
-export function usePushNotifications() {
-  const [isSupported] = useState(() => 'serviceWorker' in navigator && 'PushManager' in window)
-  const [permission, setPermission] = useState<NotificationPermission>(() => 
-    'Notification' in window ? Notification.permission : 'default'
-  )
-  const [loading, setLoading] = useState(false)
+interface PushState {
+  permission: NotificationPermission
+  hasLocalSubscription: boolean
+  isSubscribedInBackend: boolean
+  loading: boolean
+  initializing: boolean
+  error: string | null
+}
 
-  const requestPermissionAndSubscribe = async () => {
+export function usePushNotifications() {
+  const [state, setState] = useState<PushState>({
+    permission: 'default',
+    hasLocalSubscription: false,
+    isSubscribedInBackend: false,
+    loading: false,
+    initializing: true,
+    error: null
+  })
+
+  const isSupported = 'serviceWorker' in navigator && 'PushManager' in window
+
+  /**
+   * Inicializa el estado completo de las notificaciones push
+   * Sigue la regla de oro:
+   * "El estado local determina este dispositivo.
+   * El backend solo valida si ese endpoint ya está registrado."
+   */
+  const init = useCallback(async () => {
+    if (!isSupported) {
+      setState(prev => ({ ...prev, initializing: false }))
+      return
+    }
+
+    try {
+      const permission = Notification.permission
+      
+      const registration = await navigator.serviceWorker.ready
+      const localSubscription = await registration.pushManager.getSubscription()
+
+      if (!localSubscription) {
+        setState({
+          permission,
+          hasLocalSubscription: false,
+          isSubscribedInBackend: false,
+          loading: false,
+          initializing: false,
+          error: null
+        })
+        return
+      }
+
+      // Consultar estado en backend
+      const encodedEndpoint = encodeURIComponent(localSubscription.endpoint)
+      const statusRes = await api.get(`/PushNotifications/status-by-endpoint?endpoint=${encodedEndpoint}`)
+      
+      console.log('📡 Status backend response:', statusRes.data)
+
+      setState({
+        permission,
+        hasLocalSubscription: true,
+        isSubscribedInBackend: statusRes.data.isSubscribed,
+        loading: false,
+        initializing: false,
+        error: null
+      })
+
+    } catch (error) {
+      console.error('❌ Error inicializando estado push:', error)
+      setState(prev => ({
+        ...prev,
+        initializing: false,
+        isSubscribedInBackend: false,
+        error: null
+      }))
+    }
+  }, [isSupported])
+
+  /**
+   * Solicita permiso al usuario para enviar notificaciones
+   */
+  const requestPermission = useCallback(async (): Promise<boolean> => {
     if (!isSupported) return false
 
-    const result = await Notification.requestPermission()
-    setPermission(result)
-    
-    if (result !== 'granted') return false
+    setState(prev => ({ ...prev, loading: true, error: null }))
 
-    setLoading(true)
+    try {
+      const result = await Notification.requestPermission()
+      setState(prev => ({ ...prev, permission: result, loading: false }))
+
+      return result === 'granted'
+    } catch (error) {
+      console.error('❌ Error solicitando permiso:', error)
+      setState(prev => ({ ...prev, loading: false, error: 'No se pudo obtener permiso para notificaciones' }))
+      return false
+    }
+  }, [isSupported])
+
+  /**
+   * Realiza el flujo completo de suscripción
+   */
+  const subscribe = useCallback(async (): Promise<boolean> => {
+    if (!isSupported) return false
+
+    setState(prev => ({ ...prev, loading: true, error: null }))
 
     try {
       console.log('🔔 1. Obteniendo clave publica del backend...')
@@ -32,38 +120,27 @@ export function usePushNotifications() {
       console.log('📡 Response status:', publicKeyRes.status)
       console.log('📡 Response body:', publicKeyRes.data)
       
-      const data = publicKeyRes.data
-      const publicKey = data.publicKey
+      const publicKey = publicKeyRes.data.publicKey
       console.log('✅ Clave publica obtenida')
       
       console.log('🔑 Public key raw:', publicKey)
       console.log('🔑 Uint8Array:', urlBase64ToUint8Array(publicKey))
 
       console.log('🔔 2. Obteniendo Service Worker activo...')
-
-      let registration = await navigator.serviceWorker.getRegistration()
-
-      if (!registration) {
-        console.log('⚠️ No hay SW registrado, esperando...')
-        registration = await navigator.serviceWorker.ready
-      }
-
-      console.log('✅ Service Worker listo:', registration)
-      console.log('✅ Service Worker listo y activo:', registration.scope)
+      const registration = await navigator.serviceWorker.ready
 
       console.log('🔔 3. Verificando suscripcion existente...')
       let pushSubscription = await registration.pushManager.getSubscription()
-      console.log('📌 Suscripcion existente:', !!pushSubscription)
 
       if (!pushSubscription) {
-        console.log('🔔 Generando nueva suscripcion Push...')
+        console.log('🔔 Creando nueva suscripcion Push...')
         pushSubscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: urlBase64ToUint8Array(publicKey.trim())
         })
         console.log('✅ Nueva suscripcion generada')
       } else {
-        console.log('⚠️ Suscripcion ya existe, reutilizando')
+        console.log('♻️ Reutilizando suscripcion existente')
       }
       
       console.log('🔔 4. Enviando suscripcion al backend...')
@@ -72,18 +149,36 @@ export function usePushNotifications() {
       console.log('📡 Response status:', subscribeRes.status)
       console.log('📡 Response body:', subscribeRes.data)
       
+      if (subscribeRes.status < 200 || subscribeRes.status >= 300) {
+        throw new Error(`Backend respondió con código ${subscribeRes.status}`)
+      }
+
       console.log('✅ Suscripcion enviada correctamente al backend')
 
-      setLoading(false)
+      setState(prev => ({
+        ...prev,
+        hasLocalSubscription: true,
+        isSubscribedInBackend: true,
+        loading: false,
+        error: null
+      }))
+
       return true
     } catch (error) {
       console.error('❌ Error al suscribirse a notificaciones:', error)
-      setLoading(false)
+      setState(prev => ({ ...prev, loading: false, error: 'No se pudo activar notificaciones. Revisá permisos del navegador.' }))
       return false
     }
-  }
+  }, [isSupported])
 
-  const unsubscribe = async () => {
+  /**
+   * Desuscribe completamente las notificaciones
+   */
+  const unsubscribe = useCallback(async (): Promise<boolean> => {
+    if (!isSupported) return false
+
+    setState(prev => ({ ...prev, loading: true, error: null }))
+
     try {
       const registration = await navigator.serviceWorker.ready
       const subscription = await registration.pushManager.getSubscription()
@@ -96,21 +191,43 @@ export function usePushNotifications() {
 
         await subscription.unsubscribe()
         console.log('✅ Desuscrito correctamente')
+
+        setState(prev => ({
+          ...prev,
+          hasLocalSubscription: false,
+          isSubscribedInBackend: false,
+          loading: false,
+          error: null
+        }))
+
         return true
       }
 
+      setState(prev => ({ ...prev, loading: false }))
       return false
     } catch (error) {
       console.error('Error al desuscribirse:', error)
+      setState(prev => ({ ...prev, loading: false, error: 'No se pudo desactivar notificaciones' }))
       return false
     }
-  }
+  }, [isSupported])
+
+  // Inicializar automáticamente al montar el hook
+  useEffect(() => {
+    if (isSupported) {
+      // Ejecutar asincrónicamente fuera del ciclo de renderizado de React
+      void (async () => {
+        await init()
+      })()
+    }
+  }, [init, isSupported])
 
   return {
     isSupported,
-    permission,
-    loading,
-    requestPermissionAndSubscribe,
+    ...state,
+    init,
+    requestPermission,
+    subscribe,
     unsubscribe
   }
 }

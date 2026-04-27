@@ -12,6 +12,24 @@ export const api = axios.create({
   baseURL: baseURL,
 });
 
+// Flag para evitar múltiples llamadas simultáneas de refresh
+let isRefreshing = false;
+// Cola de peticiones pendientes mientras se refresca el token
+let failedQueue: { resolve: (value: unknown) => void; reject: (reason?: unknown) => void }[] = [];
+
+// Función para procesar la cola de peticiones pendientes
+const processQueue = (error: unknown, token: string | null = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  
+  failedQueue = [];
+};
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) {
@@ -32,9 +50,82 @@ api.interceptors.response.use(
     errorCountMap.delete(url);
     return response;
   },
-  (error) => {
+  async (error) => {
+    const originalRequest = error.config;
     const url = error.config?.url || 'unknown';
-    
+
+    // Si es error 401 y no es la petición de refresh token
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      
+      // Evitar bucle en la página de login
+      if (window.location.pathname.includes('/login')) {
+        return Promise.resolve({ error: true, status: 401 });
+      }
+
+      if (isRefreshing) {
+        // Si ya estamos refrescando, encolamos esta petición
+        return new Promise(function(resolve, reject) {
+          failedQueue.push({ resolve, reject });
+        })
+        .then(token => {
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return api(originalRequest);
+        })
+        .catch(err => {
+          return Promise.reject(err);
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      const refreshToken = localStorage.getItem('refreshToken');
+      
+      // Si no tenemos refresh token, deslogueamos directamente
+      if (!refreshToken) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("userId");
+        window.location.href = "/login";
+        return Promise.resolve({ error: true, status: 401 });
+      }
+
+      try {
+        // Intentar refrescar el token
+        const response = await api.post('/api/auth/refresh-token', { refreshToken });
+        
+        const { accessToken, refreshToken: newRefreshToken } = response.data;
+        
+        // Guardar nuevos tokens
+        localStorage.setItem('token', accessToken);
+        localStorage.setItem('refreshToken', newRefreshToken);
+        
+        // Actualizar header con el nuevo token
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        
+        // Procesar la cola de peticiones pendientes
+        processQueue(null, accessToken);
+        
+        // Reintentar la petición original
+        return api(originalRequest);
+        
+      } catch (refreshError) {
+        // Falló el refresh token, desloguear usuario
+        processQueue(refreshError, null);
+        
+        localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("userId");
+        
+        window.location.href = "/login";
+        
+        return Promise.resolve({ error: true, status: 401 });
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    // Para el resto de errores, mantener la lógica existente
     // Incrementar contador de errores
     const currentCount = (errorCountMap.get(url) || 0) + 1;
     errorCountMap.set(url, currentCount);
@@ -51,19 +142,6 @@ api.interceptors.response.use(
         maxRetriesReached: true,
         message: `No se pudo conectar con el servidor después de ${MAX_RETRIES} intentos`
       });
-    }
-
-    if (error.response?.status === 401) {
-      // Evitar bucle en la página de login
-      if (!window.location.pathname.includes('/login')) {
-        // Limpiar datos de sesión
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        
-        // Redirigir al login
-        window.location.href = "/login";
-      }
-      return Promise.resolve({ error: true, status: 401 });
     }
 
     // Para otros errores, permitir que se manejen arriba pero con contador
