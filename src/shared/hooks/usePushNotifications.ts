@@ -27,7 +27,16 @@ export function usePushNotifications() {
     try {
       console.log('🔔 1. Obteniendo clave publica del backend...')
       const publicKeyRes = await fetch(`${API_CONFIG.apiUrl}/PushNotifications/public-key`)
-      const data = await publicKeyRes.json()
+      const publicKeyText = await publicKeyRes.text()
+      
+      console.log('📡 Response status:', publicKeyRes.status)
+      console.log('📡 Response body:', publicKeyText)
+      
+      if (!publicKeyRes.ok) {
+        throw new Error(`HTTP ${publicKeyRes.status}: ${publicKeyText}`)
+      }
+      
+      const data = JSON.parse(publicKeyText)
       const publicKey = data.publicKey
       console.log('✅ Clave publica obtenida')
 
@@ -59,11 +68,20 @@ export function usePushNotifications() {
       }
       
       console.log('🔔 4. Enviando suscripcion al backend...')
-      await fetch(`${API_CONFIG.apiUrl}/PushNotifications/subscribe`, {
+      const subscribeRes = await fetch(`${API_CONFIG.apiUrl}/PushNotifications/subscribe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(pushSubscription.toJSON())
       })
+      const subscribeText = await subscribeRes.text()
+      
+      console.log('📡 Response status:', subscribeRes.status)
+      console.log('📡 Response body:', subscribeText)
+      
+      if (!subscribeRes.ok) {
+        throw new Error(`HTTP ${subscribeRes.status}: ${subscribeText}`)
+      }
+      
       console.log('✅ Suscripcion enviada correctamente al backend')
 
       setLoading(false)
@@ -81,11 +99,19 @@ export function usePushNotifications() {
       const subscription = await registration.pushManager.getSubscription()
       
       if (subscription) {
-        await fetch(`${API_CONFIG.apiUrl}/PushNotifications/unsubscribe`, {
+        const unsubscribeRes = await fetch(`${API_CONFIG.apiUrl}/PushNotifications/unsubscribe`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(subscription.toJSON())
         })
+        const unsubscribeText = await unsubscribeRes.text()
+        
+        console.log('📡 Response status:', unsubscribeRes.status)
+        console.log('📡 Response body:', unsubscribeText)
+        
+        if (!unsubscribeRes.ok) {
+          throw new Error(`HTTP ${unsubscribeRes.status}: ${unsubscribeText}`)
+        }
 
         await subscription.unsubscribe()
         console.log('✅ Desuscrito correctamente')

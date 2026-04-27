@@ -8,16 +8,16 @@ export default defineConfig({
   plugins: [
     react(),
       VitePWA({
-      filename: "sw.min.js",
-      registerType: "autoUpdate",
-      injectRegister: "script",
       manifestFilename: "manifest.json",
       includeManifestIcons: false,
       devOptions: {
-        enabled: true
+        enabled: false
       },
-      workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,json,webmanifest}"]
+      srcDir: "public",
+      filename: "sw-push.js",
+      strategies: "injectManifest",
+      injectManifest: {
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,json}"]
       },
       manifest: {
         name: "Neps Prode",
