@@ -10,7 +10,7 @@ function urlBase64ToUint8Array(base64String: string) {
 
 export function usePushNotifications() {
   const [isSupported] = useState(() => 'serviceWorker' in navigator && 'PushManager' in window)
-  const [permission] = useState<NotificationPermission>(() => 
+  const [permission, setPermission] = useState<NotificationPermission>(() => 
     'Notification' in window ? Notification.permission : 'default'
   )
   const [loading, setLoading] = useState(false)
@@ -19,6 +19,7 @@ export function usePushNotifications() {
     if (!isSupported) return false
 
     const result = await Notification.requestPermission()
+    setPermission(result)
     
     if (result !== 'granted') return false
 
@@ -39,6 +40,9 @@ export function usePushNotifications() {
       const data = JSON.parse(publicKeyText)
       const publicKey = data.publicKey
       console.log('✅ Clave publica obtenida')
+      
+      console.log('🔑 Public key raw:', publicKey)
+      console.log('🔑 Uint8Array:', urlBase64ToUint8Array(publicKey))
 
       console.log('🔔 2. Obteniendo Service Worker activo...')
 
