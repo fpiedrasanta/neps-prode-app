@@ -18,8 +18,11 @@ interface AuthState {
   refreshToken: string | null;
   userId: string | null;
   user: User | null;
+  // ✅ NUEVO: Estado para saber si ya terminamos de inicializar la autenticacion
+  isInitialized: boolean;
   setTokens: (token: string, refreshToken: string, userId: string, user?: User) => void;
   logout: () => void;
+  setInitialized: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -29,6 +32,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   refreshToken: localStorage.getItem("refreshToken"),
   userId: localStorage.getItem("userId"),
   user: null,
+  isInitialized: false,
   setTokens: (token: string, refreshToken: string, userId: string, user?: User) => {
     // ❌ ELIMINADO: NUNCA guardar access token en localStorage
     // localStorage.setItem("token", token);
@@ -48,4 +52,5 @@ export const useAuthStore = create<AuthState>((set) => ({
     localStorage.removeItem("userId");
     set({ token: null, refreshToken: null, userId: null, user: null });
   },
+  setInitialized: () => set({ isInitialized: true }),
 }));

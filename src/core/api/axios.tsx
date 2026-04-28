@@ -18,6 +18,7 @@ export const api = axios.create({
 // Esto es lo que hacia falta!
 const initializeAuth = async () => {
   const refreshToken = localStorage.getItem('refreshToken');
+  
   if (refreshToken) {
     try {
       const response = await api.post('auth/refresh-token', { refreshToken });
@@ -35,6 +36,11 @@ const initializeAuth = async () => {
       console.log('⚠️  Refresh token invalido al cargar la pagina');
     }
   }
+  
+  // ✅ IMPORTANTE: MARCAMOS COMO INICIALIZADO SIEMPRE, FALLE O NO, TENGA REFRESH O NO
+  // Hasta que esto no sea true, la app NO DEBE redirigir a NADIE
+  useAuthStore.getState().setInitialized();
+  console.log('✅ Auth initialize terminado, isInitialized = true');
 };
 
 // Ejecutar automaticamente al cargar el archivo
