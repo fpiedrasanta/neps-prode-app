@@ -68,6 +68,19 @@ function MainLayout({ children }: { children: React.ReactNode }) {
 }
 
 export default function AppRouter() {
+  return (
+    <BrowserRouter>
+      <MainLayout>
+        <ErrorBoundary>
+          <AppContent />
+        </ErrorBoundary>
+      </MainLayout>
+    </BrowserRouter>
+  );
+}
+
+// ✅ AHORA ESTA DENTRO DEL ROUTER, useNavigate FUNCIONA
+function AppContent() {
   const isInitialized = useAuthStore(state => state.isInitialized);
   const token = useAuthStore(state => state.token);
   const navigate = useNavigate();
@@ -100,23 +113,17 @@ export default function AppRouter() {
   }
 
   return (
-    <BrowserRouter>
-      <MainLayout>
-        <ErrorBoundary>
-          <Routes>
-          <Route path="/" element={<MatchesPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/login/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/login/verify-code" element={<VerifyCodePage />} />
-          <Route path="/login/reset-password" element={<ResetPasswordPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/friends" element={<FriendsPage />} />
-          <Route path="/ranking-friends" element={<RankingPage />} />
-          <Route path="/feed" element={<FeedPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          </Routes>
-        </ErrorBoundary>
-      </MainLayout>
-    </BrowserRouter>
+    <Routes>
+      <Route path="/" element={<MatchesPage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/login/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/login/verify-code" element={<VerifyCodePage />} />
+      <Route path="/login/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/friends" element={<FriendsPage />} />
+      <Route path="/ranking-friends" element={<RankingPage />} />
+      <Route path="/feed" element={<FeedPage />} />
+      <Route path="/profile" element={<ProfilePage />} />
+    </Routes>
   );
 }
