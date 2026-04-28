@@ -13,6 +13,33 @@ export const api = axios.create({
   baseURL: baseURL,
 });
 
+// ✅ SOLUCION PARA EL F5: Cuando la pagina se recarga, si tenemos refreshToken
+// automaticamente pedimos un nuevo access token ANTES de cualquier peticion
+// Esto es lo que hacia falta!
+const initializeAuth = async () => {
+  const refreshToken = localStorage.getItem('refreshToken');
+  if (refreshToken) {
+    try {
+      const response = await api.post('/api/auth/refresh-token', { refreshToken });
+      const { accessToken, refreshToken: newRefreshToken } = response.data;
+      
+      // Guardamos en memoria el nuevo access token
+      const setTokens = useAuthStore.getState().setTokens;
+      const currentState = useAuthStore.getState();
+      setTokens(accessToken, newRefreshToken, currentState.userId || '', currentState.user || undefined);
+      
+      console.log('✅ Auth inicializado correctamente despues de F5');
+    } catch {
+      // Si falla el refresh, limpiamos todo
+      useAuthStore.getState().logout();
+      console.log('⚠️  Refresh token invalido al cargar la pagina');
+    }
+  }
+};
+
+// Ejecutar automaticamente al cargar el archivo
+initializeAuth();
+
 // Flag para evitar múltiples llamadas simultáneas de refresh
 let isRefreshing = false;
 // Cola de peticiones pendientes mientras se refresca el token
