@@ -130,7 +130,8 @@ api.interceptors.response.use(
         processQueue(refreshError, null);
         
         // ✅ Limpiamos estado de autenticación
-        useAuthStore.getState().logout();
+        // ❗ No borrar localStorage cuando falla refresh token
+        useAuthStore.getState().logout(false);
         
         // ✅ Notificamos a todas las pestañas abiertas
         broadcastLogout();

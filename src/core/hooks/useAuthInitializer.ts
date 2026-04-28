@@ -27,7 +27,9 @@ export const useAuthInitializer = () => {
         }
       } catch {
         if (mounted) {
-          logout();
+          // ❗ Importante: NO borrar localStorage cuando falla refresh token
+          // Solo limpiamos token de memoria, mantenemos usuario visible
+          logout(false);
         }
       } finally {
         if (mounted) {

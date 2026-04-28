@@ -19,7 +19,7 @@ interface AuthState {
   isInitialized: boolean;
 
   setAccessToken: (token: string, user: User) => void;
-  logout: () => void;
+  logout: (clearStorage?: boolean) => void;
   setInitialized: () => void;
 }
 
@@ -45,8 +45,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ token, user });
   },
 
-  logout: () => {
-    localStorage.removeItem('auth_user');
+  logout: (clearStorage = true) => {
+    if (clearStorage) {
+      localStorage.removeItem('auth_user');
+    }
     set({ token: null, user: null });
   },
 
