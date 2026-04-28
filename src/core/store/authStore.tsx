@@ -44,9 +44,14 @@ export const useAuthStore = create<AuthState>((set) => ({
     // ✅ SOLO ACTUALIZAMOS LOCALSTORAGE SI EL USUARIO ES VALIDO
     if (user) {
       localStorage.setItem('auth_user', JSON.stringify(user));
-      set({ user });
+    } else {
+      const savedUser = localStorage.getItem('auth_user');
+      if (savedUser) {
+        user = JSON.parse(savedUser);
+      }
     }
-    set({ token });
+
+    set({ token, user });
   },
 
   logout: (clearStorage = true) => {
