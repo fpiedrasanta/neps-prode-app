@@ -23,9 +23,17 @@ interface AuthState {
   setInitialized: () => void;
 }
 
-// Cargar usuario desde localStorage al inicializar
-const savedUser = localStorage.getItem('auth_user');
-const initialUser = savedUser ? JSON.parse(savedUser) : null;
+// Cargar usuario desde localStorage al inicializar de forma segura
+let initialUser = null;
+try {
+  const savedUser = localStorage.getItem('auth_user');
+  if (savedUser) {
+    initialUser = JSON.parse(savedUser);
+  }
+} catch (e) {
+  console.warn('Error al cargar usuario de localStorage, limpiando:', e);
+  localStorage.removeItem('auth_user');
+}
 
 export const useAuthStore = create<AuthState>((set) => ({
   token: null,
