@@ -32,7 +32,9 @@ const processQueue = (error: unknown, token: string | null = null) => {
 };
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+  // ✅ CORRECTO: Tomar accessToken DIRECTAMENTE DEL STORE (MEMORIA)
+  // NUNCA MAS de localStorage!
+  const token = useAuthStore.getState().token;
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -84,9 +86,8 @@ api.interceptors.response.use(
       
       // Si no tenemos refresh token, deslogueamos directamente
       if (!refreshToken) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("userId");
+        // ✅ Limpiamos TODO correctamente usando el logout oficial del store
+        useAuthStore.getState().logout();
         window.location.href = "/login";
         return Promise.resolve({ error: true, status: 401 });
       }
@@ -97,9 +98,8 @@ api.interceptors.response.use(
         
         const { accessToken, refreshToken: newRefreshToken } = response.data;
         
-        // Guardar nuevos tokens
-        localStorage.setItem('token', accessToken);
-        localStorage.setItem('refreshToken', newRefreshToken);
+        // ✅ NUNCA guardamos accessToken en localStorage
+        // El store ya se encarga de guardar solo refreshToken y dejar accessToken SOLO en memoria
         
         // ✅ CORRECCIÓN: Actualizar tambien el store de Zustand (no solo localStorage!)
         const setTokens = useAuthStore.getState().setTokens;
@@ -117,12 +117,11 @@ api.interceptors.response.use(
         return api(originalRequest);
         
       } catch (refreshError) {
-        // Falló el refresh token, desloguear usuario
+        // Falló el refresh token, desloguear usuario COMPLETAMENTE
         processQueue(refreshError, null);
         
-        localStorage.removeItem("token");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("userId");
+        // ✅ Usamos logout oficial del store, limpia memoria Y localStorage correctamente
+        useAuthStore.getState().logout();
         
         window.location.href = "/login";
         
