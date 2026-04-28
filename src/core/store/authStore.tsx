@@ -15,27 +15,25 @@ interface User {
 
 interface AuthState {
   token: string | null;
-  userId: string | null;
   user: User | null;
   isInitialized: boolean;
 
-  setAccessToken: (token: string, userId: string, user?: User) => void;
+  setAccessToken: (token: string, user: User) => void;
   logout: () => void;
   setInitialized: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   token: null,
-  userId: null,
   user: null,
   isInitialized: false,
 
-  setAccessToken: (token, userId, user) => {
-    set({ token, userId, user: user || null });
+  setAccessToken: (token, user) => {
+    set({ token, user });
   },
 
   logout: () => {
-    set({ token: null, userId: null, user: null });
+    set({ token: null, user: null });
   },
 
   setInitialized: () => set({ isInitialized: true }),

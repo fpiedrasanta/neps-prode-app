@@ -30,7 +30,8 @@ import type { Country } from "@/shared/types/country.types";
 export default function ProfilePage() {
   const navigate = useNavigate();
   const token = useAuthStore((state) => state.token);
-  const userId = useAuthStore((state) => state.userId); // Asumiendo que está en el store, si no usaremos el id del perfil cargado
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id;
 
   const [profile, setProfile] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);

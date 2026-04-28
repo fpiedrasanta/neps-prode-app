@@ -27,11 +27,11 @@ const StyledHeader = styled(Box)(() => ({
 
 export default function Header() {
   const navigate = useNavigate();
-  const { logout, user, token, userId } = useAuthStore();
+  const { logout, user, token } = useAuthStore();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
-  console.log('Auth state:', { token, userId, user });
+  console.log('Auth state:', { token, userId: user?.id, user });
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);

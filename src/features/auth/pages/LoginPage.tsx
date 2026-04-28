@@ -75,7 +75,7 @@ export default function LoginPage() {
           requiresEmailVerification: apiResponse.requiresEmailVerification,
         };
         
-        setAccessToken(response.token, userId, normalizedUser);
+        setAccessToken(response.token, normalizedUser);
         navigate("/");
       } else {
         setError("Token inválido. Por favor, inténtalo de nuevo.");
@@ -292,7 +292,7 @@ export default function LoginPage() {
                             requiresEmailVerification: data.requiresEmailVerification,
                           };
                           
-                          setAccessToken(data.token, userId, normalizedUser);
+                          setAccessToken(data.token, normalizedUser);
                           navigate("/");
                       } catch (err) {
                         console.log(err);

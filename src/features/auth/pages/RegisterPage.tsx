@@ -109,8 +109,8 @@ export default function RegisterPage() {
         email: email,
         code: verificationCode
       });
-      const data = response.data;
-      setAccessToken(data.token, data.userId);
+      const { token, user } = response.data;
+      setAccessToken(token, user);
       navigate('/');
     } catch (err) {
       console.log(err);
