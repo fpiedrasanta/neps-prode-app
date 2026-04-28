@@ -20,10 +20,10 @@ export const useAuthInitializer = () => {
     const init = async () => {
       try {
         const response = await api.post('auth/refresh-token');
-        const { accessToken, userId, user } = response.data;
+        const { token, userId, user } = response.data;
 
         if (mounted) {
-          setAccessToken(accessToken, userId, user);
+          setAccessToken(token, userId, user);
         }
       } catch {
         if (mounted) {

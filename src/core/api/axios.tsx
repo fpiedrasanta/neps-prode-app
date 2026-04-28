@@ -109,18 +109,18 @@ api.interceptors.response.use(
         // SIN BODY, SIN NADA. LA COOKIE SE ENVIA SOLA.
         const response = await api.post('auth/refresh-token');
         
-        const { accessToken, userId, user } = response.data;
+        const { token, userId, user } = response.data;
         
         // ✅ Guardamos SOLO EN MEMORIA
         const setAccessToken = useAuthStore.getState().setAccessToken;
-        setAccessToken(accessToken, userId, user);
+        setAccessToken(token, userId, user);
         
         // Actualizar header con el nuevo token
         originalRequest.headers = originalRequest.headers || {};
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        originalRequest.headers.Authorization = `Bearer ${token}`;
         
         // Procesar la cola de peticiones pendientes
-        processQueue(null, accessToken);
+        processQueue(null, token);
         
         // Reintentar la petición original
         return api(originalRequest);
