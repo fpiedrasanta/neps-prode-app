@@ -23,16 +23,22 @@ interface AuthState {
   setInitialized: () => void;
 }
 
+// Cargar usuario desde localStorage al inicializar
+const savedUser = localStorage.getItem('auth_user');
+const initialUser = savedUser ? JSON.parse(savedUser) : null;
+
 export const useAuthStore = create<AuthState>((set) => ({
   token: null,
-  user: null,
+  user: initialUser,
   isInitialized: false,
 
   setAccessToken: (token, user) => {
+    localStorage.setItem('auth_user', JSON.stringify(user));
     set({ token, user });
   },
 
   logout: () => {
+    localStorage.removeItem('auth_user');
     set({ token: null, user: null });
   },
 
