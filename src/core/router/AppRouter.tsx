@@ -1,6 +1,6 @@
 // src/core/router/AppRouter.tsx
 
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { Box, CssBaseline, ThemeProvider, CircularProgress } from "@mui/material";
 import { theme } from "@/shared/theme";
 import { ErrorProvider } from "@/core/context/ErrorContext";
@@ -19,8 +19,9 @@ import FriendsPage from "@/features/friends/pages/FriendsPage";
 import FeedPage from "@/features/social/pages/FeedPage";
 import { PWAButtons } from "@/shared/components/PWAButtons";
 import { useAuthStore } from "@/core/store/authStore";
-import { useNavigate } from "react-router-dom";
 import { useEffect } from 'react';
+import { useAuthInitializer } from "@/core/hooks/useAuthInitializer";
+import { sessionChannel } from "@/core/auth/sessionChannel";
 
 // Layout con Header y BottomNav
 function MainLayout({ children }: { children: React.ReactNode }) {
@@ -81,19 +82,40 @@ export default function AppRouter() {
 
 // ✅ AHORA ESTA DENTRO DEL ROUTER, useNavigate FUNCIONA
 function AppContent() {
+  useAuthInitializer();
+
   const isInitialized = useAuthStore(state => state.isInitialized);
   const token = useAuthStore(state => state.token);
+  const logout = useAuthStore(state => state.logout);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     // ✅ SOLAMENTE cuando ya terminamos de inicializar
     if (isInitialized) {
       // Si NO hay token y NO estamos ya en login, recien ahi redirigimos
-      if (!token && !window.location.pathname.startsWith('/login') && window.location.pathname !== '/register') {
+      const currentPath = location.pathname;
+      if (!token && !currentPath.startsWith('/login') && currentPath !== '/register') {
         navigate('/login');
       }
     }
-  }, [isInitialized, token, navigate]);
+  }, [isInitialized, token, navigate, location]);
+
+  // ✅ Escuchar eventos de logout desde otras pestañas
+  useEffect(() => {
+    const handleLogoutMessage = (event: MessageEvent) => {
+      if (event.data === 'logout') {
+        logout();
+        navigate('/login');
+      }
+    };
+
+    sessionChannel.addEventListener('message', handleLogoutMessage);
+    
+    return () => {
+      sessionChannel.removeEventListener('message', handleLogoutMessage);
+    };
+  }, [logout, navigate]);
 
   // ✅ MIENTRAS NO ESTA INICIALIZADO MOSTRAMOS SPINNER, NUNCA REDIRIGIMOS
   if (!isInitialized) {

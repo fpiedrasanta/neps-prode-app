@@ -49,7 +49,7 @@ export default function RegisterPage() {
     }
   };
 
-  const setTokens = useAuthStore(state => state.setTokens);
+  const setAccessToken = useAuthStore(state => state.setAccessToken);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -126,7 +126,7 @@ export default function RegisterPage() {
 
       if (response.ok) {
         const data = await response.json();
-        setTokens(data.token, data.refreshToken, data.userId);
+        setAccessToken(data.token, data.userId);
         navigate('/');
       } else {
         const data = await response.json().catch(() => ({}));

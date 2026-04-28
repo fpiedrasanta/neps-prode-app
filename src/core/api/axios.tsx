@@ -1,7 +1,21 @@
 // src/core/api/axios.ts
+// ✅ 🔒 IMPLEMENTACION SEGURA CON COOKIES HTTPONLY
+//
+// ✅ VENTAJAS DE SEGURIDAD:
+//  1. Refresh token NUNCA es accesible desde Javascript
+//  2. No puede ser robado por ataques XSS
+//  3. El navegador se encarga automaticamente de enviarlo
+//  4. Solo se envía al mismo dominio (SameSite)
+//  5. Solo se envía por HTTPS
+//
+// ❌ ATAQUES QUE SE EVITAN:
+//  - Robo de refresh token via XSS
+//  - Robo de tokens desde localStorage
+//  - Acceso de scripts de terceros a credenciales
 
 import axios from "axios";
 import { useAuthStore } from "../store/authStore";
+import { broadcastLogout } from "../auth/sessionChannel";
 
 const baseURL = import.meta.env.VITE_API_URL;
 
@@ -11,39 +25,9 @@ if (!baseURL) {
 
 export const api = axios.create({
   baseURL: baseURL,
+  // ✅ OBLIGATORIO: Enviar automaticamente cookies en TODAS las peticiones
+  withCredentials: true,
 });
-
-// ✅ SOLUCION PARA EL F5: Cuando la pagina se recarga, si tenemos refreshToken
-// automaticamente pedimos un nuevo access token ANTES de cualquier peticion
-// Esto es lo que hacia falta!
-const initializeAuth = async () => {
-  // ✅ LO PRIMERO MARCAMOS COMO INICIALIZADO ANTES DE NADA
-  useAuthStore.getState().setInitialized();
-  console.log('✅ Auth initialize marcado como terminado INMEDIATAMENTE');
-
-  const refreshToken = localStorage.getItem('refreshToken');
-  
-  if (refreshToken) {
-    try {
-      const response = await api.post('auth/refresh-token', { refreshToken });
-      const { accessToken, refreshToken: newRefreshToken } = response.data;
-      
-      // Guardamos en memoria el nuevo access token
-      const setTokens = useAuthStore.getState().setTokens;
-      const currentState = useAuthStore.getState();
-      setTokens(accessToken, newRefreshToken, currentState.userId || '', currentState.user || undefined);
-      
-      console.log('✅ Auth inicializado correctamente despues de F5');
-    } catch {
-      // Si falla el refresh, limpiamos todo
-      useAuthStore.getState().logout();
-      console.log('⚠️  Refresh token invalido al cargar la pagina');
-    }
-  }
-};
-
-// Ejecutar automaticamente al cargar el archivo
-initializeAuth();
 
 // Flag para evitar múltiples llamadas simultáneas de refresh
 let isRefreshing = false;
@@ -63,8 +47,10 @@ const processQueue = (error: unknown, token: string | null = null) => {
   failedQueue = [];
 };
 
+
+
 api.interceptors.request.use((config) => {
-  // ✅ Ahora tomamos del store, que ya esta sincronizado con localStorage
+  // ✅ Tomar accessToken DIRECTAMENTE DEL STORE (MEMORIA)
   const token = useAuthStore.getState().token;
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -88,8 +74,13 @@ api.interceptors.response.use(
     const originalRequest = error.config;
     const url = error.config?.url || 'unknown';
 
-    // Si es error 401 y no es la petición de refresh token
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Si es error 401 y no es la petición de refresh ni logout
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.url?.includes('auth/refresh-token') &&
+      !originalRequest.url?.includes('auth/logout')
+    ) {
       
       // Evitar bucle en la página de login
       if (window.location.pathname.includes('/login')) {
@@ -110,34 +101,22 @@ api.interceptors.response.use(
         });
       }
 
-      originalRequest._retry = true;
+      (originalRequest as { _retry?: boolean } & typeof originalRequest)._retry = true;
       isRefreshing = true;
 
-      const refreshToken = localStorage.getItem('refreshToken');
-      
-      // Si no tenemos refresh token, deslogueamos directamente
-      if (!refreshToken) {
-        // ✅ Limpiamos TODO correctamente usando el logout oficial del store
-        useAuthStore.getState().logout();
-        window.location.href = "/login";
-        return Promise.resolve({ error: true, status: 401 });
-      }
-
       try {
-        // Intentar refrescar el token
-        const response = await api.post('auth/refresh-token', { refreshToken });
+        // ✅ INTENTAR REFRESCAR EL TOKEN
+        // SIN BODY, SIN NADA. LA COOKIE SE ENVIA SOLA.
+        const response = await api.post('auth/refresh-token');
         
-        const { accessToken, refreshToken: newRefreshToken } = response.data;
+        const { accessToken, userId, user } = response.data;
         
-        // ✅ El store se encarga de guardar ambos tokens en localStorage
-        
-        // ✅ CORRECCIÓN: Actualizar tambien el store de Zustand (no solo localStorage!)
-        const setTokens = useAuthStore.getState().setTokens;
-        // Actualizamos token y refreshToken manteniendo el usuario que ya estaba
-        const currentState = useAuthStore.getState();
-        setTokens(accessToken, newRefreshToken, currentState.userId || '', currentState.user || undefined);
+        // ✅ Guardamos SOLO EN MEMORIA
+        const setAccessToken = useAuthStore.getState().setAccessToken;
+        setAccessToken(accessToken, userId, user);
         
         // Actualizar header con el nuevo token
+        originalRequest.headers = originalRequest.headers || {};
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         
         // Procesar la cola de peticiones pendientes
@@ -150,11 +129,13 @@ api.interceptors.response.use(
         // Falló el refresh token, desloguear usuario COMPLETAMENTE
         processQueue(refreshError, null);
         
-        // ✅ Usamos logout oficial del store, limpia memoria Y localStorage correctamente
+        // ✅ Limpiamos estado de autenticación
         useAuthStore.getState().logout();
         
-        window.location.href = "/login";
+        // ✅ Notificamos a todas las pestañas abiertas
+        broadcastLogout();
         
+        // ✅ La redirección se maneja automaticamente en AppRouter
         return Promise.resolve({ error: true, status: 401 });
       } finally {
         isRefreshing = false;

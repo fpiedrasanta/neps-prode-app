@@ -7,6 +7,8 @@ import { useAuthStore } from '@/core/store/authStore';
 import { styled } from '@mui/material/styles';
 import { getResourceUrl } from '@/shared/config/api';
 import { PWAInstallButton } from '@/shared/components/PWAInstallButton';
+import { api } from '@/core/api/axios';
+import { broadcastLogout } from '@/core/auth/sessionChannel';
 
 const StyledHeader = styled(Box)(() => ({
   position: 'fixed',
@@ -29,13 +31,7 @@ export default function Header() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
-  // 🔍 DEBUG LOG PARA ENCONTRAR EL PROBLEMA
-  console.log('✅ Header montado - Estado Auth Store:', {
-    existeToken: !!token,
-    userId,
-    existeUser: !!user,
-    user: user
-  });
+  console.log('Auth state:', { token, userId, user });
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -45,121 +41,52 @@ export default function Header() {
     setAnchorEl(null);
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-    handleClose();
-  };
+  const handleLogout = async () => {
+    try {
+      await api.post('auth/logout');
+      broadcastLogout();
+    } catch (e) {
+      console.warn('Logout request failed:', e);
+    }
 
-  const handleEditProfile = () => {
-    navigate('/profile');
+    logout();
     handleClose();
   };
 
   return (
     <>
       <StyledHeader>
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            cursor: 'pointer',
-            gap: 0,
-          }}
-          onClick={() => navigate('/')}
-        >
-          <Typography
-            variant="h5"
-            component="h1"
-            sx={{
-              fontWeight: 700,
-              background: 'linear-gradient(90deg, #ff7e7e, #7b96ff)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              letterSpacing: '1px',
-              lineHeight: 1.2,
-            }}
-          >
-            PRODE
-          </Typography>
-          <Typography
-            component="span"
-            sx={{
-              color: '#a0a0a0',
-              fontFamily: 'monospace',
-              fontSize: '0.75rem',
-              lineHeight: 1.2,
-            }}
-          >
-            {`<neps/>`}
-          </Typography>
+        <Box onClick={() => navigate('/')} sx={{ cursor: 'pointer' }}>
+          <Typography variant="h5">PRODE</Typography>
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <PWAInstallButton variant="icon" />
 
-          <IconButton
-            onClick={handleClick}
-            size="small"
-            sx={{
-              width: 40,
-              height: 40,
-              border: '2px solid rgba(255,255,255,0.2)',
-            }}
-          >
-          <Avatar
-            src={user?.avatarUrl ? getResourceUrl(user.avatarUrl) : undefined}
-            sx={{
-              width: 32,
-              height: 32,
-              bgcolor: '#7b96ff',
-              fontSize: '0.875rem',
-            }}
-            alt={user?.fullName || 'Usuario'}
-          >
-            {!user?.avatarUrl && user?.fullName 
-              ? user.fullName
-                  .split(' ')
-                  .filter(Boolean)
-                  .slice(0, 2)
-                  .map(name => name[0])
-                  .join('')
-                  .toUpperCase() 
+          <IconButton onClick={handleClick} size="small">
+            <Avatar
+              src={user?.avatarUrl ? getResourceUrl(user.avatarUrl) : undefined}
+            >
+              {!user?.avatarUrl && user?.fullName
+                ? user.fullName
+                    .split(' ')
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .map((name: string) => name[0]) // ✅ FIX TYPE
+                    .join('')
+                    .toUpperCase()
                 : 'U'}
-          </Avatar>
+            </Avatar>
           </IconButton>
         </Box>
       </StyledHeader>
 
-      <Menu
-        anchorEl={anchorEl}
-        open={open}
-        onClose={handleClose}
-        PaperProps={{
-          elevation: 3,
-          sx: {
-            mt: 1,
-            minWidth: 180,
-            bgcolor: '#1a1a2e',
-            color: '#fff',
-            '& .MuiMenuItem-root': {
-              '&:hover': {
-                bgcolor: 'rgba(123, 150, 255, 0.2)',
-              },
-            },
-          },
-        }}
-        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-      >
-        <MenuItem onClick={handleEditProfile}>
-          <Box sx={{ mr: 1 }}>✏️</Box>
-          Editar mi perfil
+      <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
+        <MenuItem onClick={() => navigate('/profile')}>
+          Editar perfil
         </MenuItem>
-        <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
+        <Divider />
         <MenuItem onClick={handleLogout}>
-          <Box sx={{ mr: 1 }}>🚪</Box>
           Salir
         </MenuItem>
       </Menu>

@@ -24,7 +24,7 @@ import { usePWAInstall } from "@/shared/hooks/usePWAInstall";
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const setTokens = useAuthStore((state) => state.setTokens);
+  const setAccessToken = useAuthStore((state) => state.setAccessToken);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { isInstallable, install } = usePWAInstall();
@@ -75,7 +75,7 @@ export default function LoginPage() {
           requiresEmailVerification: apiResponse.requiresEmailVerification,
         };
         
-        setTokens(response.token, apiResponse.refreshToken, userId, normalizedUser);
+        setAccessToken(response.token, userId, normalizedUser);
         navigate("/");
       } else {
         setError("Token inválido. Por favor, inténtalo de nuevo.");
@@ -298,7 +298,7 @@ export default function LoginPage() {
                             requiresEmailVerification: data.requiresEmailVerification,
                           };
                           
-                          setTokens(data.token, data.refreshToken, userId, normalizedUser);
+                          setAccessToken(data.token, userId, normalizedUser);
                           navigate("/");
                         } else {
                           const errorData = await res.json().catch(() => ({}));
