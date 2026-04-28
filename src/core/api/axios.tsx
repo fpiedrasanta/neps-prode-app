@@ -37,10 +37,10 @@ const initializeAuth = async () => {
     }
   }
   
-  // ✅ IMPORTANTE: MARCAMOS COMO INICIALIZADO SIEMPRE, FALLE O NO, TENGA REFRESH O NO
-  // Hasta que esto no sea true, la app NO DEBE redirigir a NADIE
+  // ✅ SI O SI MARCAMOS COMO INICIALIZADO INMEDIATAMENTE
+  // NO ESPERAMOS A NINGUNA LLAMADA ASINCRONA, NUNCA MAS.
   useAuthStore.getState().setInitialized();
-  console.log('✅ Auth initialize terminado, isInitialized = true');
+  console.log('✅ Auth initialize marcado como terminado INMEDIATAMENTE');
 };
 
 // Ejecutar automaticamente al cargar el archivo
@@ -65,8 +65,7 @@ const processQueue = (error: unknown, token: string | null = null) => {
 };
 
 api.interceptors.request.use((config) => {
-  // ✅ CORRECTO: Tomar accessToken DIRECTAMENTE DEL STORE (MEMORIA)
-  // NUNCA MAS de localStorage!
+  // ✅ Ahora tomamos del store, que ya esta sincronizado con localStorage
   const token = useAuthStore.getState().token;
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -131,8 +130,7 @@ api.interceptors.response.use(
         
         const { accessToken, refreshToken: newRefreshToken } = response.data;
         
-        // ✅ NUNCA guardamos accessToken en localStorage
-        // El store ya se encarga de guardar solo refreshToken y dejar accessToken SOLO en memoria
+        // ✅ El store se encarga de guardar ambos tokens en localStorage
         
         // ✅ CORRECCIÓN: Actualizar tambien el store de Zustand (no solo localStorage!)
         const setTokens = useAuthStore.getState().setTokens;
