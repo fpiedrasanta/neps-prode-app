@@ -27,11 +27,11 @@ const StyledHeader = styled(Box)(() => ({
 
 export default function Header() {
   const navigate = useNavigate();
-  const { logout, user, token } = useAuthStore();
+  const { logout, user, token, isInitialized } = useAuthStore();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
-  console.log('Auth state:', { token, userId: user?.id, user });
+  console.log('Auth state:', { token, userId: user?.id, user, isInitialized });
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -63,21 +63,23 @@ export default function Header() {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <PWAInstallButton variant="icon" />
 
-          <IconButton onClick={handleClick} size="small">
-            <Avatar
-              src={user?.avatarUrl ? getResourceUrl(user.avatarUrl) : undefined}
-            >
-              {!user?.avatarUrl && user?.fullName
-                ? user.fullName
-                    .split(' ')
-                    .filter(Boolean)
-                    .slice(0, 2)
-                    .map((name: string) => name[0]) // ✅ FIX TYPE
-                    .join('')
-                    .toUpperCase()
-                : 'U'}
-            </Avatar>
-          </IconButton>
+          {isInitialized && user && (
+            <IconButton onClick={handleClick} size="small">
+              <Avatar
+                src={user?.avatarUrl ? getResourceUrl(user.avatarUrl) : undefined}
+              >
+                {!user?.avatarUrl && user?.fullName
+                  ? user.fullName
+                      .split(' ')
+                      .filter(Boolean)
+                      .slice(0, 2)
+                      .map((name: string) => name[0])
+                      .join('')
+                      .toUpperCase()
+                  : 'U'}
+              </Avatar>
+            </IconButton>
+          )}
         </Box>
       </StyledHeader>
 
