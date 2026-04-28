@@ -20,7 +20,7 @@ const initializeAuth = async () => {
   const refreshToken = localStorage.getItem('refreshToken');
   if (refreshToken) {
     try {
-      const response = await api.post('/api/auth/refresh-token', { refreshToken });
+      const response = await api.post('auth/refresh-token', { refreshToken });
       const { accessToken, refreshToken: newRefreshToken } = response.data;
       
       // Guardamos en memoria el nuevo access token
@@ -121,7 +121,7 @@ api.interceptors.response.use(
 
       try {
         // Intentar refrescar el token
-        const response = await api.post('/api/auth/refresh-token', { refreshToken });
+        const response = await api.post('auth/refresh-token', { refreshToken });
         
         const { accessToken, refreshToken: newRefreshToken } = response.data;
         
