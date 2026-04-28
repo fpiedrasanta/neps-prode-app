@@ -13,7 +13,7 @@ import {
   TextField,
 } from '@mui/material';
 import { theme } from '@/shared/theme';
-import { API_CONFIG } from '@/shared/config/api';
+import { api } from '@/core/api/axios';
 
 export default function ForgotPasswordPage() {
   const navigate = useNavigate();
@@ -30,18 +30,8 @@ export default function ForgotPasswordPage() {
     setError(null);
 
     try {
-      const response = await fetch(`${API_CONFIG.apiUrl}/Auth/forgot-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim() }),
-      });
-
-      if (response.ok) {
-        navigate('/login/verify-code', { state: { email } });
-      } else {
-        const data = await response.json().catch(() => ({}));
-        setError(data.message || 'No se pudo enviar el código. Por favor inténtalo de nuevo.');
-      }
+      await api.post('/Auth/forgot-password', { email: email.trim() });
+      navigate('/login/verify-code', { state: { email } });
     } catch (err) {
       console.log(err);
       setError('Error de conexión. Por favor revisa tu conexión a internet.');

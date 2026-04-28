@@ -13,7 +13,7 @@ import {
   TextField,
 } from '@mui/material';
 import { theme } from '@/shared/theme';
-import { API_CONFIG } from '@/shared/config/api';
+import { api } from '@/core/api/axios';
 
 export default function ResetPasswordPage() {
   const navigate = useNavigate();
@@ -49,23 +49,13 @@ export default function ResetPasswordPage() {
     setError(null);
 
     try {
-      const response = await fetch(`${API_CONFIG.apiUrl}/Auth/reset-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email,
-          code,
-          newPassword,
-        }),
+      await api.post('/Auth/reset-password', {
+        email,
+        code,
+        newPassword,
       });
-
-      if (response.ok) {
-        alert('Contraseña actualizada correctamente!');
-        navigate('/login');
-      } else {
-        const data = await response.json().catch(() => ({}));
-        setError(data.message || 'No se pudo actualizar la contraseña. Por favor inténtalo de nuevo.');
-      }
+      alert('Contraseña actualizada correctamente!');
+      navigate('/login');
     } catch (err) {
       console.log(err);
       setError('Error de conexión. Por favor revisa tu conexión a internet.');

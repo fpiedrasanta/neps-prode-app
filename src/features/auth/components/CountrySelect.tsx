@@ -1,8 +1,9 @@
 // src/features/auth/components/CountrySelect.tsx
 import { useState, useEffect } from 'react';
 import { Autocomplete, TextField, CircularProgress } from '@mui/material';
-import { getResourceUrl, API_CONFIG } from '@/shared/config/api';
+import { getResourceUrl } from '@/shared/config/api';
 import type { Country } from "@/shared/types/country.types";
+import { api } from '@/core/api/axios';
 
 interface CountrySelectProps {
   value: Country | null;
@@ -19,8 +20,8 @@ export default function CountrySelect({ value, onChange, onCountriesLoaded }: Co
     const loadCountries = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`${API_CONFIG.apiUrl}/Countries/all`);
-        const data = await response.json();
+        const response = await api.get<Country[]>('/Countries/all');
+        const data = response.data;
         setCountries(data);
         if (onCountriesLoaded) {
           onCountriesLoaded(data);

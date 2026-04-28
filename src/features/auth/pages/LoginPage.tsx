@@ -19,7 +19,7 @@ import { authService, type LoginError } from "../services/authService";
 import { useAuthStore } from "@/core/store/authStore";
 import { theme } from "@/shared/theme";
 import { Button, Input } from "@/shared/components";
-import { API_CONFIG } from '@/shared/config/api';
+import { api } from '@/core/api/axios';
 import { usePWAInstall } from "@/shared/hooks/usePWAInstall";
 
 export default function LoginPage() {
@@ -273,14 +273,8 @@ export default function LoginPage() {
                   callback: async (response: { access_token?: string; error?: string }) => {
                     if (response.access_token) {
                       try {
-                        const res = await fetch(`${API_CONFIG.apiUrl}/Auth/login/google`, {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ googleToken: response.access_token }),
-                        });
-
-                        if (res.ok) {
-                          const data = await res.json();
+                        const res = await api.post('/Auth/login/google', { googleToken: response.access_token });
+                        const data = res.data;
                           
                           const tokenParts = data.token.split('.');
                           const payload = JSON.parse(atob(tokenParts[1]));
@@ -300,10 +294,6 @@ export default function LoginPage() {
                           
                           setAccessToken(data.token, userId, normalizedUser);
                           navigate("/");
-                        } else {
-                          const errorData = await res.json().catch(() => ({}));
-                          setError(errorData.message || "No se pudo iniciar sesión con Google");
-                        }
                       } catch (err) {
                         console.log(err);
                         setError("Error de conexión con Google");

@@ -15,7 +15,8 @@ import {
 } from '@mui/material';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import { theme } from '@/shared/theme';
-import { API_CONFIG, getResourceUrl } from '@/shared/config/api';
+import { getResourceUrl } from '@/shared/config/api';
+import { api } from '@/core/api/axios';
 import CountrySelect from '../components/CountrySelect';
 import type { Country } from "@/shared/types/country.types";
 import { useAuthStore } from '@/core/store/authStore';
@@ -81,18 +82,9 @@ export default function RegisterPage() {
         formData.append('file', avatarFile);
       }
 
-      const response = await fetch(`${API_CONFIG.apiUrl}/Auth/register`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (response.ok) {
-        setRegistrationSuccess(true);
-        setError(null);
-      } else {
-        const data = await response.json().catch(() => ({}));
-        setError(data.message || 'No se pudo crear la cuenta. Por favor inténtalo de nuevo.');
-      }
+      await api.post('/Auth/register', formData);
+      setRegistrationSuccess(true);
+      setError(null);
     } catch (err) {
       console.log(err);
       setError('Error de conexión. Por favor revisa tu conexión a internet.');
@@ -113,25 +105,13 @@ export default function RegisterPage() {
     setError(null);
 
     try {
-      const response = await fetch(`${API_CONFIG.apiUrl}/Auth/verify-email`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email,
-          code: verificationCode
-        })
+      const response = await api.post('/Auth/verify-email', {
+        email: email,
+        code: verificationCode
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setAccessToken(data.token, data.userId);
-        navigate('/');
-      } else {
-        const data = await response.json().catch(() => ({}));
-        setError(data.message || 'Código inválido o expirado. Por favor inténtalo de nuevo.');
-      }
+      const data = response.data;
+      setAccessToken(data.token, data.userId);
+      navigate('/');
     } catch (err) {
       console.log(err);
       setError('Error de conexión. Por favor revisa tu conexión a internet.');
