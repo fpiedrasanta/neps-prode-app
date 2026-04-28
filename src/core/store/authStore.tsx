@@ -41,15 +41,21 @@ export const useAuthStore = create<AuthState>((set) => ({
   isInitialized: false,
 
   setAccessToken: (token, user) => {
-    localStorage.setItem('auth_user', JSON.stringify(user));
+    // ✅ SOLO ACTUALIZAMOS LOCALSTORAGE SI EL USUARIO ES VALIDO
+    if (user) {
+      localStorage.setItem('auth_user', JSON.stringify(user));
+    }
     set({ token, user });
   },
 
   logout: (clearStorage = true) => {
     if (clearStorage) {
       localStorage.removeItem('auth_user');
+      set({ token: null, user: null });
+    } else {
+      // Solo limpiamos el TOKEN, MANTENEMOS EL USUARIO VISIBLE
+      set({ token: null });
     }
-    set({ token: null, user: null });
   },
 
   setInitialized: () => set({ isInitialized: true }),
