@@ -1,6 +1,7 @@
 // src/core/api/axios.ts
 
 import axios from "axios";
+import { useAuthStore } from "../store/authStore";
 
 const baseURL = import.meta.env.VITE_API_URL;
 
@@ -99,6 +100,12 @@ api.interceptors.response.use(
         // Guardar nuevos tokens
         localStorage.setItem('token', accessToken);
         localStorage.setItem('refreshToken', newRefreshToken);
+        
+        // ✅ CORRECCIÓN: Actualizar tambien el store de Zustand (no solo localStorage!)
+        const setTokens = useAuthStore.getState().setTokens;
+        // Actualizamos token y refreshToken manteniendo el usuario que ya estaba
+        const currentState = useAuthStore.getState();
+        setTokens(accessToken, newRefreshToken, currentState.userId || '', currentState.user || undefined);
         
         // Actualizar header con el nuevo token
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
