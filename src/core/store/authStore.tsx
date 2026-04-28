@@ -26,28 +26,21 @@ interface AuthState {
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
-  // ✅ CORRECTO: accessToken SOLAMENTE EN MEMORIA, NUNCA EN localStorage
-  token: null,
-  // ✅ refreshToken SI se guarda en localStorage (vence en 7 dias)
+  // 🔙 VOLVEMOS A GUARDAR EN LOCALSTORAGE PARA ARREGLAR EL F5
+  token: localStorage.getItem("token"),
   refreshToken: localStorage.getItem("refreshToken"),
   userId: localStorage.getItem("userId"),
   user: null,
   isInitialized: false,
   setTokens: (token: string, refreshToken: string, userId: string, user?: User) => {
-    // ❌ ELIMINADO: NUNCA guardar access token en localStorage
-    // localStorage.setItem("token", token);
-    
-    // ✅ Solo guardamos refreshToken y userId en localStorage
+    localStorage.setItem("token", token);
     localStorage.setItem("refreshToken", refreshToken);
     localStorage.setItem("userId", userId);
     
-    // ✅ accessToken SOLO queda en la memoria del store
     set({ token, refreshToken, userId, user: user || null });
   },
   logout: () => {
-    // ❌ ELIMINADO: token ya no esta en localStorage
-    // localStorage.removeItem("token");
-    
+    localStorage.removeItem("token");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("userId");
     set({ token: null, refreshToken: null, userId: null, user: null });
