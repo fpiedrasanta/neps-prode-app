@@ -42,15 +42,18 @@ export default function Header() {
   };
 
   const handleLogout = async () => {
-    try {
-      await api.post('auth/logout');
-      broadcastLogout();
-    } catch (e) {
-      console.warn('Logout request failed:', e);
-    }
-
+    // Primero limpiamos el estado LOCALMENTE SIEMPRE, no importa que pase con el servidor
     logout();
     handleClose();
+    broadcastLogout();
+    
+    try {
+      // Despues intentamos notificar al servidor, si falla no importa igual ya salimos
+      // @ts-expect-error - Flag especial para no intentar refresh token en logout
+      await api.post('auth/logout', {}, { _skipRefreshToken: true });
+    } catch (e) {
+      console.warn('Logout request al servidor falló (normal si token ya expiró):', e);
+    }
   };
 
   return (
@@ -63,7 +66,7 @@ export default function Header() {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <PWAInstallButton variant="icon" />
 
-          {isInitialized && user && (
+          {user && (
             <IconButton onClick={handleClick} size="small">
               <Avatar
                 src={user?.avatarUrl ? getResourceUrl(user.avatarUrl) : undefined}
