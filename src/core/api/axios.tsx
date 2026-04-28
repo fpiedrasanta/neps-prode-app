@@ -17,6 +17,10 @@ export const api = axios.create({
 // automaticamente pedimos un nuevo access token ANTES de cualquier peticion
 // Esto es lo que hacia falta!
 const initializeAuth = async () => {
+  // ✅ LO PRIMERO MARCAMOS COMO INICIALIZADO ANTES DE NADA
+  useAuthStore.getState().setInitialized();
+  console.log('✅ Auth initialize marcado como terminado INMEDIATAMENTE');
+
   const refreshToken = localStorage.getItem('refreshToken');
   
   if (refreshToken) {
@@ -36,11 +40,6 @@ const initializeAuth = async () => {
       console.log('⚠️  Refresh token invalido al cargar la pagina');
     }
   }
-  
-  // ✅ SI O SI MARCAMOS COMO INICIALIZADO INMEDIATAMENTE
-  // NO ESPERAMOS A NINGUNA LLAMADA ASINCRONA, NUNCA MAS.
-  useAuthStore.getState().setInitialized();
-  console.log('✅ Auth initialize marcado como terminado INMEDIATAMENTE');
 };
 
 // Ejecutar automaticamente al cargar el archivo
