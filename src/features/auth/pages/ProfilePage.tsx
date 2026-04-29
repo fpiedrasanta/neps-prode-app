@@ -49,11 +49,23 @@ export default function ProfilePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Verificar autenticación
+  /*
   useEffect(() => {
     if (!token) {
       navigate('/login', { replace: true });
     }
   }, [token, navigate]);
+  */
+
+  const isInitialized = useAuthStore((state) => state.isInitialized);
+
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    if (!token) {
+      navigate('/login', { replace: true });
+    }
+  }, [token, isInitialized, navigate]);
 
   // Cargar perfil
   const loadProfile = useCallback(async () => {
@@ -190,6 +202,10 @@ export default function ProfilePage() {
   };
 
   // Si no hay token, no renderizamos nada
+  if (!isInitialized) {
+    return null;
+  }
+
   if (!token) {
     return null;
   }

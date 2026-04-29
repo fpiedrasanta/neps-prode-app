@@ -38,11 +38,23 @@ export default function FeedPage() {
   const currentPageRef = useRef(1);
 
   // Verificar autenticación
+  /*
   useEffect(() => {
     if (!token) {
       navigate('/login', { replace: true });
     }
   }, [token, navigate]);
+  */
+
+  const isInitialized = useAuthStore((state) => state.isInitialized);
+
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    if (!token) {
+      navigate('/login', { replace: true });
+    }
+  }, [token, isInitialized, navigate]);
 
   // Cargar posts
   const loadPosts = useCallback(async (page: number, append: boolean = false) => {
@@ -115,6 +127,7 @@ export default function FeedPage() {
 
   // Cargar inicialmente
   useEffect(() => {
+    if (!isInitialized) return;
     if (!token) return;
     
     setPosts([]);
@@ -124,6 +137,7 @@ export default function FeedPage() {
 
   // Scroll infinito
   useEffect(() => {
+    if (!isInitialized) return;
     if (!token) return;
     
     const observer = new IntersectionObserver(
@@ -148,6 +162,7 @@ export default function FeedPage() {
   }, [retryTimeout, token, loadPosts]);
 
   // Si no hay token, no renderizamos nada (el useEffect redirigirá)
+  if (!isInitialized) return null;
   if (!token) {
     return null;
   }

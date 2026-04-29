@@ -75,11 +75,23 @@ export default function MatchesPage() {
   const currentPageRef = useRef(1);
 
   // Verificar autenticación
+  /*
   useEffect(() => {
     if (!token) {
       navigate('/login', { replace: true });
     }
   }, [token, navigate]);
+  */
+
+  const isInitialized = useAuthStore((state) => state.isInitialized);
+
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    if (!token) {
+      navigate('/login', { replace: true });
+    }
+  }, [token, isInitialized, navigate]);
 
   // Cargar partidos
   const loadMatches = useCallback(async (page: number, status: number, append: boolean = false) => {
@@ -155,6 +167,7 @@ export default function MatchesPage() {
 
   // Cargar cuando cambia el tab
   useEffect(() => {
+    if (!isInitialized) return;
     if (!token) return; // No cargar si no hay token
     
     setMatches([]);
@@ -165,6 +178,7 @@ export default function MatchesPage() {
 
   // Scroll infinito
   useEffect(() => {
+    if (!isInitialized) return;
     if (!token) return;
     
     const observer = new IntersectionObserver(
@@ -193,6 +207,10 @@ export default function MatchesPage() {
   };
 
   // Si no hay token, no renderizamos nada (el useEffect redirigirá)
+  if (!isInitialized) {
+    return null;
+  }
+
   if (!token) {
     return null;
   }
