@@ -17,7 +17,7 @@ export const useAuthInitializer = () => {
 
     let mounted = true;
 
-    const init = async () => {
+    const init = async (retry = 0) => {
       try {
         const response = await api.post('auth/refresh-token');
         const { token, user } = response.data;
@@ -25,15 +25,22 @@ export const useAuthInitializer = () => {
         if (mounted) {
           setAccessToken(token, user);
         }
-      } catch {
-        if (mounted) {
-          // ❗ Importante: NO borrar localStorage cuando falla refresh token
-          // Solo limpiamos token de memoria, mantenemos usuario visible
-          logout(false);
-        }
-      } finally {
+
+        // ✅ Solo marcamos initialized cuando termina BIEN
         if (mounted) {
           setInitialized();
+        }
+
+      } catch {
+        if (retry < 2) {
+          // 🔁 Reintento corto (evita race conditions al levantar la app)
+          setTimeout(() => init(retry + 1), 500);
+          return;
+        }
+
+        if (mounted) {
+          logout(false);
+          setInitialized(); // ✅ Importante: no dejar la app colgada
         }
       }
     };
