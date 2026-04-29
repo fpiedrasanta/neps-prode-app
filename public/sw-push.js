@@ -1,19 +1,34 @@
 // Service Worker para Notificaciones Push Neps Prode
+
 self.addEventListener('push', function(event) {
-  const data = event.data?.json() ?? {}
+  let data = {}
+
+  try {
+    data = event.data?.json() ?? {}
+  } catch {
+    data = {}
+  }
+
+  // 🔥 Soporte para payload con "notification" (como el tuyo)
+  const notification = data.notification || data
+
   const options = {
-    body: data.body || 'Tienes una nueva notificación',
-    icon: '/neps-logo.png',
-    badge: '/neps-logo.png',
+    body: notification.body || 'Tienes una nueva notificación',
+    icon: notification.icon || '/icons/icon-192x192.png',
+    badge: notification.badge || '/icons/badge-72x72.png',
     vibrate: [100, 50, 100],
     data: {
-      url: data.url || '/'
+      url: notification.data?.url || '/',
+      ...notification.data
     },
-    actions: data.actions || []
+    actions: notification.actions || []
   }
 
   event.waitUntil(
-    self.registration.showNotification(data.title || 'Neps Prode', options)
+    self.registration.showNotification(
+      notification.title || 'Neps Prode',
+      options
+    )
   )
 })
 
@@ -23,10 +38,10 @@ self.addEventListener('notificationclick', function(event) {
   const url = event.notification.data?.url || '/'
   
   event.waitUntil(
-    clients.matchAll({ type: 'window' }).then(clientList => {
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
       for (let i = 0; i < clientList.length; i++) {
         const client = clientList[i]
-        if (client.url === url && 'focus' in client) {
+        if (client.url.includes(url) && 'focus' in client) {
           return client.focus()
         }
       }
