@@ -177,67 +177,95 @@ export default function Header() {
           ) : (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               {friendRequests.map((request) => (
-                <Box 
-                  key={request.id} 
-                  sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'space-between',
-                    bgcolor: '#16162a',
-                    border: '2px solid #3a3a5a',
-                    borderRadius: 2,
-                    p: 2
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    {request.friendAvatarUrl ? (
+                  <Box 
+                    key={request.id} 
+                    sx={{ 
+                      display: 'flex', 
+                      flexDirection: 'column',
+                      gap: 2,
+                      bgcolor: '#16162a',
+                      border: '1px solid #6366f1',
+                      borderRadius: 2,
+                      p: 2
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      {request.friendAvatarUrl ? (
+                        <Box 
+                          component="img" 
+                          src={getResourceUrl(request.friendAvatarUrl)!}
+                          sx={{ width: 45, height: 45, borderRadius: '50%' }} 
+                        />
+                      ) : (
+                        <Box 
+                          sx={{ 
+                            width: 45, 
+                            height: 45, 
+                            borderRadius: '50%', 
+                            bgcolor: '#3a3a5a',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontWeight: 'bold',
+                            fontSize: '1.1rem'
+                          }}
+                        >
+                          {request.friendFullName?.substring(0,2).toUpperCase() ?? '?'}
+                        </Box>
+                      )}
+                      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                        <Typography sx={{ color: 'white', fontWeight: 600, fontSize: '1rem' }}>{request.friendFullName}</Typography>
+                        <Typography sx={{ color: '#a0a0a0', fontSize: '0.85rem' }}>{request.friendTotalPoints ?? 0} pts</Typography>
+                      </Box>
+                    </Box>
+
+                    <Box sx={{ display: 'flex', gap: 2, width: '100%' }}>
                       <Box 
-                        component="img" 
-                        src={getResourceUrl(request.friendAvatarUrl)!}
-                        sx={{ width: 40, height: 40, borderRadius: '50%' }} 
-                      />
-                    ) : (
-                      <Box 
-                        sx={{ 
-                          width: 40, 
-                          height: 40, 
-                          borderRadius: '50%', 
-                          bgcolor: '#3a3a5a',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontWeight: 'bold'
+                        component="button"
+                        onClick={async () => {
+                          await friendsService.acceptFriendship(request.id);
+                          loadPendingRequests();
+                        }}
+                        sx={{
+                          flex: 1,
+                          bgcolor: '#10b981',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: 2,
+                          py: 1.5,
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          fontSize: '0.95rem',
+                          transition: 'opacity 0.2s',
+                          '&:hover': { opacity: 0.9 }
                         }}
                       >
-                        {request.friendFullName?.substring(0,2).toUpperCase() ?? '?'}
+                        ✅ Aceptar
                       </Box>
-                    )}
-                    <Typography sx={{ color: 'white' }}>{request.friendFullName}</Typography>
+                      <Box 
+                        component="button"
+                        onClick={async () => {
+                          await friendsService.declineFriendship(request.id);
+                          loadPendingRequests();
+                        }}
+                        sx={{
+                          flex: 1,
+                          bgcolor: '#47476b',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: 2,
+                          py: 1.5,
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          fontSize: '0.95rem',
+                          transition: 'opacity 0.2s',
+                          '&:hover': { opacity: 0.9 }
+                        }}
+                      >
+                        ❌ Rechazar
+                      </Box>
+                    </Box>
                   </Box>
-
-                  <Box sx={{ display: 'flex', gap: 1 }}>
-                    <IconButton 
-                      size="small" 
-                      onClick={async () => {
-                        await friendsService.acceptFriendship(request.id);
-                        loadPendingRequests();
-                      }}
-                      sx={{ color: '#10b981' }}
-                    >
-                      ✓
-                    </IconButton>
-                    <IconButton 
-                      size="small" 
-                      onClick={async () => {
-                        await friendsService.declineFriendship(request.id);
-                        loadPendingRequests();
-                      }}
-                      sx={{ color: '#ef4444' }}
-                    >
-                      ✕
-                    </IconButton>
-                  </Box>
-                </Box>
               ))}
             </Box>
           )}

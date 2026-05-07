@@ -5,7 +5,7 @@ import { getResourceUrl } from '@/shared/config/api';
 
 interface ListItem {
   id: string;
-  type: 'user' | 'friend' | 'sent' | 'received';
+  type: 'user' | 'friend' | 'sent';
   fullName: string;
   avatarUrl: string | null;
   points: number | null;
@@ -17,7 +17,6 @@ interface ListItem {
 const FriendsPage = () => {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [sentRequests, setSentRequests] = useState<FriendRequest[]>([]);
-  const [receivedRequests, setReceivedRequests] = useState<FriendRequest[]>([]);
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -32,7 +31,6 @@ const FriendsPage = () => {
       
       setFriends(summary.friends);
       setSentRequests(summary.sentRequests);
-      setReceivedRequests(summary.receivedRequests);
       setCurrentUser(summary.currentUser);
     } catch (error) {
       console.error('Error loading friends:', error);
@@ -60,16 +58,6 @@ const FriendsPage = () => {
 
   const handleRemoveFriend = async (friendId: string) => {
     await friendsService.removeFriend(friendId);
-    loadData();
-  };
-
-  const handleAcceptRequest = async (friendshipId: string) => {
-    await friendsService.acceptFriendship(friendshipId);
-    loadData();
-  };
-
-  const handleDeclineRequest = async (friendshipId: string) => {
-    await friendsService.declineFriendship(friendshipId);
     loadData();
   };
 
@@ -144,20 +132,6 @@ const FriendsPage = () => {
       });
     });
 
-    // Agregar solicitudes recibidas
-    receivedRequests.forEach(request => {
-      list.push({
-        id: request.id,
-        type: 'received',
-        fullName: request.friendFullName,
-        avatarUrl: request.friendAvatarUrl,
-        points: request.friendTotalPoints,
-        status: request.status,
-        isCurrentUser: false,
-        isPending: true
-      });
-    });
-
     // Ordenar de mayor a menor por puntos
     return list.sort((a, b) => {
       const pointsA = a.points ?? 0;
@@ -168,7 +142,7 @@ const FriendsPage = () => {
 
   const combinedList = getCombinedList();
   
-  // Generar slots vacíos (maxFriends menos la cantidad de elementos que tenemos (usuario + amigos + solicitudes enviadas + recibidas)
+  // Generar slots vacíos (maxFriends menos la cantidad de elementos que tenemos (usuario + amigos + solicitudes enviadas)
   const emptySlots = Array.from({ length: maxFriends - combinedList.length }, (_, i) => i);
 
   return (
@@ -180,59 +154,32 @@ const FriendsPage = () => {
         </button>
       </div>
 
+
       {/* Lista combinada: Usuario + Amigos + Solicitudes Enviadas */}
       <div className="friends-list">
         {combinedList.map((item, index) => (
-          <div key={item.id} className={`friend-item top-${index + 1} ${item.isPending ? 'pending-item' : ''} ${item.type === 'received' ? 'received-request' : ''}`}>
-            
-            {item.type === 'received' ? (
-              <>
-                <div className="user-info">
-                  {getAvatar(item.avatarUrl, item.fullName)}
-                  <div className="user-details">
-                    <span className="user-name">{item.fullName}</span>
-                    <div className="user-status">
-                      <span className="user-points">{item.points ?? 0} pts</span>
-                      <span className="pending">Quiere ser tu amigo!</span>
-                    </div>
-                  </div>
+          <div key={item.id} className={`friend-item top-${index + 1} ${item.isPending ? 'pending-item' : ''}`}>
+            <div className="user-info">
+              {getAvatar(item.avatarUrl, item.fullName)}
+              <div className="user-details">
+                <span className="user-name">{item.fullName}</span>
+                <div className="user-status">
+                  <span className="user-points">{item.points ?? 0} pts</span>
+                  {item.isPending && <span className="pending">Esperando...</span>}
                 </div>
-                
-                <div className="request-action-buttons">
-                  <button className="accept-btn" onClick={() => handleAcceptRequest(item.id)}>
-                    ✅ Aceptar
-                  </button>
-                  <button className="decline-btn" onClick={() => handleDeclineRequest(item.id)}>
-                    ❌ Rechazar
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="user-info">
-                  {getAvatar(item.avatarUrl, item.fullName)}
-                  <div className="user-details">
-                    <span className="user-name">{item.fullName}</span>
-                    <div className="user-status">
-                      <span className="user-points">{item.points ?? 0} pts</span>
-                      {item.isPending && <span className="pending">Esperando...</span>}
-                    </div>
-                  </div>
-                </div>
-                <div className="friend-actions">
-                  {getPositionBadge(index + 1)}
-                  {!item.isCurrentUser && (
-                    <button 
-                      className="remove-btn" 
-                      onClick={() => handleRemoveFriend(item.id)}
-                    >
-                      Quitar
-                    </button>
-                  )}
-                </div>
-              </>
-            )}
-
+              </div>
+            </div>
+            <div className="friend-actions">
+              {getPositionBadge(index + 1)}
+              {!item.isCurrentUser && (
+                <button 
+                  className="remove-btn" 
+                  onClick={() => handleRemoveFriend(item.id)}
+                >
+                  Quitar
+                </button>
+              )}
+            </div>
           </div>
         ))}
 
@@ -253,6 +200,7 @@ const FriendsPage = () => {
         <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h3>Agregar amigo</h3>
+
             <input
               type="text"
               placeholder="Buscar usuario..."

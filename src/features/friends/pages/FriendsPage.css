@@ -373,3 +373,52 @@
 .close-modal-btn:hover {
   background-color: rgba(255,255,255,0.05);
 }
+
+.modal-subtitle {
+  color: #a0a0a0;
+  font-size: 0.9rem;
+  margin: 0 0 12px 0;
+  font-weight: 600;
+}
+
+.modal-divider {
+  border: none;
+  border-top: 1px solid #3a3a5a;
+  margin: 16px 0;
+}
+
+.modal-requests {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.request-item-modal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background-color: #16162a;
+  border-radius: 10px;
+  border: 1px solid #6366f1;
+}
+
+.request-item-modal .user-details {
+  gap: 2px;
+}
+
+.request-item-modal .request-action-buttons {
+  display: flex;
+  gap: 8px;
+  width: auto;
+}
+
+.request-item-modal .request-action-buttons button {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 8px;
+  font-size: 1rem;
+}
