@@ -5,6 +5,20 @@ import path from "path";
 
 export default defineConfig({
 
+  server: {
+    proxy: {
+      '/api': {
+        target: 'https://localhost:7163',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => {
+          console.log("👉 PROXY HIT:", path);
+          return path;
+        }
+      }
+    }
+  },
+
   plugins: [
     react(),
       VitePWA({

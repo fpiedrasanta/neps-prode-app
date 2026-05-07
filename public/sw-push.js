@@ -1,5 +1,5 @@
 // Service Worker para Notificaciones Push Neps Prode
-const CACHE_VERSION = 'v2'; // 🔥 cambiar esto en cada deploy importante
+const CACHE_VERSION = 'v2.5'; // 🔥 cambiar esto en cada deploy importante
 const CACHE_NAME = `neps-prode-${CACHE_VERSION}`;
 
 // 🔔 PUSH
@@ -64,3 +64,6 @@ self.addEventListener('activate', (event) => {
 
   self.clients.claim();
 });
+
+// This is used by Vite PWA plugin to inject the precache manifest
+self.__WB_MANIFEST;

@@ -117,8 +117,21 @@ function AppContent() {
     };
   }, [logout, navigate]);
 
-  // ✅ MIENTRAS NO ESTA INICIALIZADO MOSTRAMOS SPINNER, NUNCA REDIRIGIMOS
+  // ✅ EN MODO DEV NUNCA MOSTRAMOS SPINNER INFINITO
   if (!isInitialized) {
+    // Si ya estamos en pagina publica mostramos directamente la pagina
+    if (location.pathname === '/login' || location.pathname === '/register' || location.pathname.startsWith('/login/')) {
+      return (
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/login/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/login/verify-code" element={<VerifyCodePage />} />
+          <Route path="/login/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+        </Routes>
+      );
+    }
+
     return (
       <Box 
         sx={{ 

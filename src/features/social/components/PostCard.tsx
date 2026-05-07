@@ -11,14 +11,21 @@ interface PostCardProps {
   post: Post;
 }
 
-const StyledCard = styled(Card)(() => ({
+const StyledCard = styled(Card, {
+  shouldForwardProp: (prop) => prop !== 'isSpecial'
+})<{ isSpecial?: boolean }>(({ isSpecial }) => ({
   maxWidth: 480,
   width: '100%',
   borderRadius: 12,
-  border: '2px dashed rgba(255, 255, 255, 0.1)',
-  background: 'transparent',
+  border: isSpecial 
+    ? '2px solid #1976d2' 
+    : '2px dashed rgba(255, 255, 255, 0.1)',
+  background: isSpecial 
+    ? 'linear-gradient(135deg, rgba(25, 118, 210, 0.08) 0%, rgba(25, 118, 210, 0.02) 100%)' 
+    : 'transparent',
   overflow: 'visible',
   margin: '0 auto',
+  boxShadow: isSpecial ? '0 0 20px rgba(25, 118, 210, 0.15)' : 'none',
 }));
 
 const CardHeader = styled(Box)(() => ({
@@ -70,7 +77,7 @@ const getAvatar = (post: Post) => {
     return (
       <Avatar 
          src={getResourceUrl(post.userAvatarUrl)} 
-        alt={post.userFullName}
+        alt={post.userFullName ?? ''}
         sx={{ width: 44, height: 44 }}
       />
     );
@@ -85,7 +92,7 @@ const getAvatar = (post: Post) => {
         fontSize: '1rem',
       }}
     >
-      {post.userFullName.substring(0, 2).toUpperCase()}
+      {post.userFullName?.substring(0, 2).toUpperCase() ?? '?'}
     </Avatar>
   );
 };
@@ -116,6 +123,8 @@ export default function PostCard({ post }: PostCardProps) {
   const [commentInput, setCommentInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const isSpecial = post.isSpecialPost === true;
+
   const handleSubmitComment = async () => {
     if (!commentInput.trim() || isSubmitting) return;
 
@@ -138,88 +147,106 @@ export default function PostCard({ post }: PostCardProps) {
   };
 
   return (
-    <StyledCard elevation={0}>
-      <CardContent sx={{ p: 2 }}>
-        {/* Header con usuario y fecha */}
-        <CardHeader>
-          {getAvatar(post)}
-          <UserInfo>
-            <Typography variant="subtitle2" fontWeight={600}>
-              {post.userFullName}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {formatDate(post.createdAt)}
-            </Typography>
-          </UserInfo>
-        </CardHeader>
+    <StyledCard elevation={0} isSpecial={isSpecial}>
+      <CardContent sx={isSpecial ? { p: 0, '&:last-child': { pb: 0 } } : { p: 2 }}>
+        {/* Header con usuario y fecha (solo para posts normales) */}
+        {!isSpecial && (
+          <CardHeader>
+            {getAvatar(post)}
+            <UserInfo>
+              <Typography variant="subtitle2" fontWeight={600}>
+                {post.userFullName}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {formatDate(post.createdAt)}
+              </Typography>
+            </UserInfo>
+          </CardHeader>
+        )}
 
 
-        {/* Preview del partido */}
-        <Box sx={{ 
-          display: 'grid', 
-          gridTemplateColumns: '1fr auto 1fr', 
-          alignItems: 'center', 
-          gap: 2,
-          mb: 2,
-          mt: '40px',
-          width: '100%'
-        }}>
-          {/* LOCAL: Bandera + Equipo a la izquierda */}
-          <TeamInfo sx={{ justifyContent: 'flex-start' }}>
-             <Flag src={getResourceUrl(post.homeTeamFlagUrl)} alt={post.homeTeamName} />
-            <Typography variant="body2" component="span">
-              {post.homeTeamName}
-            </Typography>
-          </TeamInfo>
-          
-          {/* VS: Perfectamente centrado en toda la card */}
-          <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', minWidth: '30px' }}>
-            vs
-          </Typography>
-          
-          {/* VISITANTE: Equipo + Bandera a la derecha */}
-          <TeamInfo sx={{ justifyContent: 'flex-end', width: '100%' }}>
-            <Typography variant="body2" component="span" sx={{ textAlign: 'right', width: '100%' }}>
-              {post.awayTeamName}
-            </Typography>
-            <Flag src={getResourceUrl(post.awayTeamFlagUrl)} alt={post.awayTeamName} />
-          </TeamInfo>
-        </Box>
 
-        {/* Marcador del partido */}
-        <ScoreBox>
-          <ScoreDisplay>
-            <span>{post.homeScore}</span>
-            <Typography variant="h6" color="text.secondary">-</Typography>
-            <span>{post.awayScore}</span>
-          </ScoreDisplay>
-        </ScoreBox>
 
-        {/* Pronóstico */}
-        <Box sx={{ mt: '32px', mb: 1, textAlign: 'center' }}>
-          <Typography variant="body2" color="text.secondary">
-            Pronóstico de {post.userFullName}: {post.homePrediction} - {post.awayPrediction}
-          </Typography>
-        </Box>
+        {/* Preview del partido (solo para posts normales) */}
+        {!isSpecial && post.matchId && (
+          <>
+            <Box sx={{ 
+              display: 'grid', 
+              gridTemplateColumns: '1fr auto 1fr', 
+              alignItems: 'center', 
+              gap: 2,
+              mb: 2,
+              mt: '40px',
+              width: '100%'
+            }}>
+              {/* LOCAL: Bandera + Equipo a la izquierda */}
+              <TeamInfo sx={{ justifyContent: 'flex-start' }}>
+                <Flag src={getResourceUrl(post.homeTeamFlagUrl) ?? undefined} alt={post.homeTeamName ?? ''} />
+                <Typography variant="body2" component="span">
+                  {post.homeTeamName}
+                </Typography>
+              </TeamInfo>
+              
+              {/* VS: Perfectamente centrado en toda la card */}
+              <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', minWidth: '30px' }}>
+                vs
+              </Typography>
+              
+              {/* VISITANTE: Equipo + Bandera a la derecha */}
+              <TeamInfo sx={{ justifyContent: 'flex-end', width: '100%' }}>
+                <Typography variant="body2" component="span" sx={{ textAlign: 'right', width: '100%' }}>
+                  {post.awayTeamName}
+                </Typography>
+                <Flag src={getResourceUrl(post.awayTeamFlagUrl) ?? undefined} alt={post.awayTeamName ?? ''} />
+              </TeamInfo>
+            </Box>
 
-        {/* Puntos obtenidos */}
-        <Box sx={{ mt: 1, mb: 2, textAlign: 'center' }}>
-          <Typography 
-            variant="body2" 
-            sx={{ 
-              color: post.pointsEarned >= 0 ? '#4caf50' : '#ff5252',
-              fontWeight: 600
-            }}
-          >
-            {post.pointsEarned >= 0 
-              ? `¡${post.userFullName} obtuvo ${post.pointsEarned} puntos! 😊` 
-              : `¡${post.userFullName} perdió ${post.pointsEarned * -1} puntos! 😢`
-            }
-          </Typography>
-        </Box>
+            {/* Marcador del partido */}
+            <ScoreBox>
+              <ScoreDisplay>
+                <span>{post.homeScore}</span>
+                <Typography variant="h6" color="text.secondary">-</Typography>
+                <span>{post.awayScore}</span>
+              </ScoreDisplay>
+            </ScoreBox>
 
-        {/* Comentarios */}
-        {comments.length > 0 && (
+            {/* Pronóstico */}
+            {post.homePrediction !== null && post.awayPrediction !== null && (
+              <Box sx={{ mt: '32px', mb: 1, textAlign: 'center' }}>
+                <Typography variant="body2" color="text.secondary">
+                  Pronóstico de {post.userFullName}: {post.homePrediction} - {post.awayPrediction}
+                </Typography>
+              </Box>
+            )}
+
+            {/* Puntos obtenidos */}
+            {post.pointsEarned !== null && (
+              <Box sx={{ mt: 1, mb: 2, textAlign: 'center' }}>
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    color: post.pointsEarned >= 0 ? '#4caf50' : '#ff5252',
+                    fontWeight: 600
+                  }}
+                >
+                  {post.pointsEarned >= 0 
+                    ? `¡${post.userFullName} obtuvo ${post.pointsEarned} puntos! 😊` 
+                    : `¡${post.userFullName} perdió ${post.pointsEarned * -1} puntos! 😢`
+                  }
+                </Typography>
+              </Box>
+            )}
+          </>
+        )}
+
+        {/* Contenido del post - Soporta HTML */}
+        <Box 
+          sx={{ mt: isSpecial ? 0 : 2 }}
+          dangerouslySetInnerHTML={{ __html: post.content }} 
+        />
+
+        {/* Comentarios (solo para posts normales) */}
+        {!isSpecial && comments.length > 0 && (
           <Box sx={{ mt: 2, borderTop: '1px solid rgba(255, 255, 255, 0.1)', pt: 2 }}>
             <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
               Comentarios
@@ -251,48 +278,50 @@ export default function PostCard({ post }: PostCardProps) {
           </Box>
         )}
 
-        {/* Input de comentario */}
-        <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Input
-              fullWidth
-              disableUnderline
-              placeholder="Escribe un comentario..."
-              value={commentInput}
-              onChange={(e) => setCommentInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              disabled={isSubmitting}
-              sx={{
-                flex: 1,
-                p: 1,
-                bgcolor: 'rgba(255, 255, 255, 0.05)',
-                borderRadius: 8,
-                color: '#ffffff',
-                '&::placeholder': {
-                  color: '#a0a0a0',
-                },
-              }}
-            />
-            <Box 
-              sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                width: 40, 
-                height: 40, 
-                bgcolor: 'primary.main', 
-                borderRadius: 8, 
-                cursor: commentInput.trim() && !isSubmitting ? 'pointer' : 'not-allowed',
-                opacity: commentInput.trim() && !isSubmitting ? 1 : 0.5,
-              }}
-              onClick={handleSubmitComment}
-            >
-              <Typography variant="body2" color="white">
-                ➤
-              </Typography>
+        {/* Input de comentario (solo para posts normales) */}
+        {!isSpecial && (
+          <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Input
+                fullWidth
+                disableUnderline
+                placeholder="Escribe un comentario..."
+                value={commentInput}
+                onChange={(e) => setCommentInput(e.target.value)}
+                onKeyPress={handleKeyPress}
+                disabled={isSubmitting}
+                sx={{
+                  flex: 1,
+                  p: 1,
+                  bgcolor: 'rgba(255, 255, 255, 0.05)',
+                  borderRadius: 8,
+                  color: '#ffffff',
+                  '&::placeholder': {
+                    color: '#a0a0a0',
+                  },
+                }}
+              />
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  width: 40, 
+                  height: 40, 
+                  bgcolor: 'primary.main', 
+                  borderRadius: 8, 
+                  cursor: commentInput.trim() && !isSubmitting ? 'pointer' : 'not-allowed',
+                  opacity: commentInput.trim() && !isSubmitting ? 1 : 0.5,
+                }}
+                onClick={handleSubmitComment}
+              >
+                <Typography variant="body2" color="white">
+                  ➤
+                </Typography>
+              </Box>
             </Box>
           </Box>
-        </Box>
+        )}
       </CardContent>
     </StyledCard>
   );

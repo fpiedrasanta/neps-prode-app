@@ -3,6 +3,8 @@ import { useEffect, useRef } from "react";
 import { api } from "@/core/api/axios";
 import { useAuthStore } from "@/core/store/authStore";
 
+const IS_DEV = import.meta.env.DEV;
+
 // 🔒 Singleton global
 let isInitializing = false;
 let initPromise: Promise<void> | null = null;
@@ -25,11 +27,12 @@ export const useAuthInitializer = () => {
 
       initPromise = (async () => {
         // 🔥 Delay inicial (clave para PWA / cookies)
-        await new Promise(res => setTimeout(res, 300));
+        await new Promise(res => setTimeout(res, IS_DEV ? 100 : 300));
 
         let retry = 0;
+        const maxRetries = IS_DEV ? 1 : 3;
 
-        while (retry < 3) {
+        while (retry < maxRetries) {
           try {
             const response = await api.post('auth/refresh-token');
             const { token, user } = response.data;
@@ -40,12 +43,16 @@ export const useAuthInitializer = () => {
 
             return; // ✅ éxito
           } catch {
+            if (IS_DEV) {
+              console.log('🔧 [DEV MODE] Refresh token falló - continuando sin login automático');
+              return;
+            }
             retry++;
             await new Promise(res => setTimeout(res, 500));
           }
         }
 
-        // ❌ Falló después de retries
+        // ❌ Falló después de retries (SOLO PRODUCCION)
         if (mounted) {
           logout(false);
         }
@@ -57,6 +64,7 @@ export const useAuthInitializer = () => {
     // 👇 todos esperan el mismo init
     initPromise?.finally(() => {
       if (mounted) {
+        console.log('✅ Auth initialized');
         setInitialized();
       }
     });

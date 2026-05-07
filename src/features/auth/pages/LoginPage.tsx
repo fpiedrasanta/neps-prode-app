@@ -76,6 +76,7 @@ export default function LoginPage() {
         };
         
         setAccessToken(response.token, normalizedUser);
+        useAuthStore.getState().setInitialized(); // 👈 ESTE
         navigate("/");
       } else {
         setError("Token inválido. Por favor, inténtalo de nuevo.");
@@ -293,6 +294,7 @@ export default function LoginPage() {
                           };
                           
                           setAccessToken(data.token, normalizedUser);
+                          useAuthStore.getState().setInitialized(); // 👈 ESTE
                           navigate("/");
                       } catch (err) {
                         console.log(err);

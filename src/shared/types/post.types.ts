@@ -17,20 +17,22 @@ export interface PostComment {
 
 export interface Post {
   id: string;
-  userId: string;
-  userFullName: string;
+  userId: string | null;
+  userFullName: string | null;
   userAvatarUrl: string | null;
-  matchId: string;
-  homeTeamName: string;
-  homeTeamFlagUrl: string;
-  awayTeamName: string;
-  awayTeamFlagUrl: string;
-  homeScore: number;
-  awayScore: number;
-  homePrediction: number;
-  awayPrediction: number;
-  pointsEarned: number;
-  matchDate: string;
+  isSpecialPost?: boolean;
+  title?: string;
+  matchId: string | null;
+  homeTeamName: string | null;
+  homeTeamFlagUrl: string | null;
+  awayTeamName: string | null;
+  awayTeamFlagUrl: string | null;
+  homeScore: number | null;
+  awayScore: number | null;
+  homePrediction: number | null;
+  awayPrediction: number | null;
+  pointsEarned: number | null;
+  matchDate: string | null;
   content: string;
   createdAt: string;
   comments: PostComment[];

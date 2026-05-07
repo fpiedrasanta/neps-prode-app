@@ -111,6 +111,7 @@ export default function RegisterPage() {
       });
       const { token, user } = response.data;
       setAccessToken(token, user);
+      useAuthStore.getState().setInitialized(); // 👈 ESTE
       navigate('/');
     } catch (err) {
       console.log(err);
