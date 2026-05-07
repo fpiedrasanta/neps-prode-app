@@ -1,9 +1,7 @@
 // src/shared/components/BottomNav/BottomNav.tsx
 
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Box, styled, Badge } from '@mui/material';
-import { useEffect, useState } from 'react';
-import { friendsService } from '@/features/friends/services/friendsService';
+import { Box, styled } from '@mui/material';
 
 const StyledBottomNav = styled(Box)(() => ({
   position: 'fixed',
@@ -51,21 +49,6 @@ const NavIcon = styled('span', {
 })<{ $active: boolean }>(({ $active }) => ({
   fontSize: $active ? '1.5rem' : '1.3rem',
   filter: $active ? 'drop-shadow(0 0 4px rgba(123, 150, 255, 0.5))' : 'none',
-  position: 'relative',
-}));
-
-const NotificationBadge = styled(Badge)(() => ({
-  '& .MuiBadge-badge': {
-    backgroundColor: '#ef4444',
-    color: 'white',
-    fontSize: '0.6rem',
-    minWidth: 10,
-    height: 10,
-    borderRadius: '50%',
-    padding: 0,
-    top: 2,
-    right: 2,
-  }
 }));
 
 const NavLabel = styled('span', {
@@ -95,24 +78,6 @@ const navItems: NavItemData[] = [
 export default function BottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
-
-  useEffect(() => {
-    const loadPendingRequests = async () => {
-      try {
-        const summary = await friendsService.getSummary();
-        setPendingRequestsCount(summary.receivedRequests.length);
-      } catch (error) {
-        console.error('Error loading pending requests:', error);
-      }
-    };
-
-    loadPendingRequests();
-    
-    // Actualizar cada 30 segundos
-    const interval = setInterval(loadPendingRequests, 30000);
-    return () => clearInterval(interval);
-  }, []);
 
   return (
     <StyledBottomNav>
@@ -126,13 +91,7 @@ export default function BottomNav() {
               $center={item.isCenter}
               onClick={() => navigate(item.path)}
             >
-              {item.path === '/friends' && pendingRequestsCount > 0 ? (
-                <NotificationBadge badgeContent={pendingRequestsCount} max={9}>
-                  <NavIcon $active={isActive}>{item.icon}</NavIcon>
-                </NotificationBadge>
-              ) : (
-                <NavIcon $active={isActive}>{item.icon}</NavIcon>
-              )}
+              <NavIcon $active={isActive}>{item.icon}</NavIcon>
               <NavLabel $active={isActive}>{item.label}</NavLabel>
             </NavItem>
           );

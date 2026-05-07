@@ -239,11 +239,21 @@ export default function PostCard({ post }: PostCardProps) {
           </>
         )}
 
-        {/* Contenido del post - Soporta HTML */}
-        <Box 
-          sx={{ mt: isSpecial ? 0 : 2 }}
-          dangerouslySetInnerHTML={{ __html: post.content }} 
-        />
+        {/* Contenido del post - Soporta HTML SOLO para posts especiales */}
+        {isSpecial && (
+          <Box 
+            sx={{ mt: 0 }}
+            dangerouslySetInnerHTML={{ __html: post.content }} 
+          />
+        )}
+
+        {/* Contenido para posts normales se oculta como solicitado */}
+        {!isSpecial && post.content && (
+          <Box 
+            sx={{ mt: 2 }}
+            dangerouslySetInnerHTML={{ __html: post.content }} 
+          />
+        )}
 
         {/* Comentarios (solo para posts normales) */}
         {!isSpecial && comments.length > 0 && (

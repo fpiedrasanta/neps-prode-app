@@ -17,7 +17,6 @@ interface ListItem {
 const FriendsPage = () => {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [sentRequests, setSentRequests] = useState<FriendRequest[]>([]);
-  const [receivedRequests, setReceivedRequests] = useState<FriendRequest[]>([]);
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -32,7 +31,6 @@ const FriendsPage = () => {
       
       setFriends(summary.friends);
       setSentRequests(summary.sentRequests);
-      setReceivedRequests(summary.receivedRequests);
       setCurrentUser(summary.currentUser);
     } catch (error) {
       console.error('Error loading friends:', error);
@@ -60,16 +58,6 @@ const FriendsPage = () => {
 
   const handleRemoveFriend = async (friendId: string) => {
     await friendsService.removeFriend(friendId);
-    loadData();
-  };
-
-  const handleAcceptRequest = async (friendshipId: string) => {
-    await friendsService.acceptFriendship(friendshipId);
-    loadData();
-  };
-
-  const handleDeclineRequest = async (friendshipId: string) => {
-    await friendsService.declineFriendship(friendshipId);
     loadData();
   };
 
@@ -205,39 +193,6 @@ const FriendsPage = () => {
         ))}
       </div>
 
-      {/* Solicitudes recibidas */}
-      {receivedRequests.length > 0 && (
-        <>
-          <h2 className="requests-title">Solicitudes recibidas:</h2>
-          <div className="requests-list">
-            {receivedRequests.map((request) => (
-              <div key={request.id} className="request-item">
-                <div className="user-info">
-                  {getAvatar(request.friendAvatarUrl, request.friendFullName)}
-                  <div className="user-details">
-                    <span className="user-name">{request.friendFullName}</span>
-                    <span className="request-status">Recibido</span>
-                  </div>
-                </div>
-                <div className="request-actions">
-                  <button 
-                    className="accept-btn"
-                    onClick={() => handleAcceptRequest(request.id)}
-                  >
-                    Aceptar
-                  </button>
-                  <button 
-                    className="decline-btn"
-                    onClick={() => handleDeclineRequest(request.id)}
-                  >
-                    Denegar
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
 
       {/* Modal Agregar Amigo */}
       {showAddModal && (
