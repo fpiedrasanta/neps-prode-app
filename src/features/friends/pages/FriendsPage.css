@@ -183,6 +183,51 @@
   text-decoration: underline;
 }
 
+/* ✅ Solicitudes Recibidas Layout */
+.received-request {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  border-color: #6366f1 !important;
+  background: linear-gradient(135deg, #1a1a2e 0%, #1e1e3a 100%);
+}
+
+.received-request .user-info {
+  width: 100%;
+}
+
+.request-action-buttons {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.request-action-buttons button {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: transform 0.15s, opacity 0.2s;
+}
+
+.request-action-buttons button:hover {
+  transform: translateY(-1px);
+  opacity: 0.9;
+}
+
+.request-action-buttons .accept-btn {
+  background-color: #10b981;
+  color: white;
+}
+
+.request-action-buttons .decline-btn {
+  background-color: #47476b;
+  color: white;
+}
+
 .requests-title {
   font-size: 2rem;
   font-weight: bold;
