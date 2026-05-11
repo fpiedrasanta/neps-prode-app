@@ -247,15 +247,6 @@ export default function PostCard({ post }: PostCardProps) {
           />
         )}
 
-        {/* Contenido para posts normales se oculta como solicitado */}
-        {/*
-        {!isSpecial && post.content && (
-          <Box 
-            sx={{ mt: 2 }}
-            dangerouslySetInnerHTML={{ __html: post.content }} 
-          />
-        )}
-        */}
         
         {/* Comentarios (solo para posts normales) */}
         {!isSpecial && comments.length > 0 && (
