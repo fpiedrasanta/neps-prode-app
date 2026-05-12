@@ -24,17 +24,44 @@ self.addEventListener('push', function(event) {
   );
 });
 
+/**
+ * Convierte un tipo de notificación en una URL de navegación.
+ * Soporta tanto 'url' como 'click_action' (legacy) enviados desde el backend.
+ */
+function getNotificationUrl(data) {
+  // Si ya viene una URL explícita, la usamos directamente
+  if (data.url) return data.url
+  if (data.click_action) return data.click_action
+
+  // Fallback: data.type define la ruta según el tipo de notificación
+  switch (data.type) {
+    case 'comment':
+    case 'new_post':
+      return '/feed'
+    case 'match_about_to_start':
+      return '/?tab=0'   // Próximos
+    case 'match_started':
+      return '/?tab=1'   // En juego
+    case 'match_finished':
+      return '/?tab=2'   // Finalizados
+    case 'friend_request':
+      return '/?openRequests=true'
+    default:
+      return '/'
+  }
+}
+
 // 🖱 CLICK
 self.addEventListener('notificationclick', function(event) {
   event.notification.close()
 
-  const url = event.notification.data?.url || '/'
+  const url = getNotificationUrl(event.notification.data || {})
   
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
       for (let client of clientList) {
-        if (client.url.includes(url) && 'focus' in client) {
-          return client.focus()
+        if ('focus' in client) {
+          return client.navigate(url).then(() => client.focus()).catch(() => client.focus())
         }
       }
       if (clients.openWindow) {

@@ -1,7 +1,7 @@
 // src/features/matches/pages/MatchesPage.tsx
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Box,
   Container,
@@ -60,8 +60,19 @@ type RetryTimeout = ReturnType<typeof setTimeout> | null;
 
 export default function MatchesPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const token = useAuthStore((state) => state.token);
-  const [tabValue, setTabValue] = useState(0);
+  const [tabValue, setTabValue] = useState(() => {
+    // Leer tab desde query param: ?tab=0, ?tab=1, ?tab=2
+    const tabParam = searchParams.get('tab');
+    if (tabParam !== null) {
+      const parsed = parseInt(tabParam, 10);
+      if (!isNaN(parsed) && parsed >= 0 && parsed <= 2) {
+        return parsed;
+      }
+    }
+    return 0;
+  });
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

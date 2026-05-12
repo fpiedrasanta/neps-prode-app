@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Box, Typography, Avatar, Menu, MenuItem, IconButton, Divider, Badge, Dialog, DialogContent } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '@/core/store/authStore';
 import { styled } from '@mui/material/styles';
 import { getResourceUrl } from '@/shared/config/api';
@@ -42,11 +42,15 @@ const StyledHeader = styled(Box)(() => ({
 
 export default function Header() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { logout, user, token, isInitialized } = useAuthStore();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([]);
-  const [requestsModalOpen, setRequestsModalOpen] = useState(false);
+  const [requestsModalOpen, setRequestsModalOpen] = useState(() => {
+    // Auto-abrir si viene ?openRequests=true en la URL (desde notificación push)
+    return searchParams.get('openRequests') === 'true';
+  });
   const open = Boolean(anchorEl);
 
   const loadPendingRequests = async () => {
