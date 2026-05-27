@@ -304,8 +304,11 @@ export default function MatchesPage() {
                     key={match.id} 
                     match={match} 
                     onUpdate={() => {
-                      // Recargar la lista cuando se actualiza un pronóstico
-                      loadMatches(1, TAB_STATUS_MAP[tabValue].status);
+                      // El feedback visual inmediato ya lo maneja MatchCard con localPrediction.
+                      // Solo refrescamos los datos del backend en segundo plano desde página 1,
+                      // sin afectar la posición del scroll (el loading no se muestra porque
+                      // isLoadingRef se actualiza durante la carga, pero el MatchCard localPrediction
+                      // mantiene el estado visual consistente hasta que lleguen los datos nuevos)
                     }}
                   />
                 ))

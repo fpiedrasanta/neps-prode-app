@@ -12,12 +12,21 @@ interface MatchCardProps {
   onUpdate?: () => void;
 }
 
-const StyledCard = styled(Card)(() => ({
+const StyledCard = styled(Card, {
+  shouldForwardProp: (prop) => prop !== 'hasPredictionStyle',
+})<{ hasPredictionStyle?: boolean }>(({ hasPredictionStyle }) => ({
   maxWidth: 480,
   width: '100%',
   borderRadius: 12,
-  border: '2px dashed rgba(255, 255, 255, 0.1)',
-  background: 'transparent',
+  border: hasPredictionStyle
+    ? '2px solid'
+    : '2px dashed rgba(255, 255, 255, 0.1)',
+  borderImage: hasPredictionStyle
+    ? 'linear-gradient(135deg, #ff7e7e, #7b96ff) 1'
+    : 'none',
+  background: hasPredictionStyle
+    ? 'linear-gradient(135deg, rgba(255,126,126,0.08), rgba(123,150,255,0.08))'
+    : 'transparent',
   overflow: 'visible',
   margin: '0 auto',
 }));
@@ -91,12 +100,14 @@ export default function MatchCard({ match, onUpdate }: MatchCardProps) {
   const [awayGoals, setAwayGoals] = useState<string>(userPrediction?.awayGoals?.toString() ?? '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [localPrediction, setLocalPrediction] = useState<{ homeGoals: number; awayGoals: number; id?: string } | null>(null);
 
   // Determinar estado del partido basado en status
   const isUpcoming = status === 1 || status === null;  // Próximo
   const isLive = status === 2;  // En juego
   const isFinished = status === 3;  // Finalizado
   const hasPrediction = userPrediction !== null;
+  const effectiveHasPrediction = hasPrediction || localPrediction !== null;
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -120,7 +131,7 @@ export default function MatchCard({ match, onUpdate }: MatchCardProps) {
   };
 
   return (
-    <StyledCard elevation={0}>
+    <StyledCard elevation={0} hasPredictionStyle={effectiveHasPrediction}>
       <CardContent sx={{ p: 2 }}>
         {/* Encabezado del partido */}
         <Box sx={{ 
@@ -225,7 +236,7 @@ export default function MatchCard({ match, onUpdate }: MatchCardProps) {
                 onClick={async () => {
                   if (homeGoals === '' || awayGoals === '') return;
                   
-                  const predictionId = userPrediction?.Id || userPrediction?.id;
+                  const predictionId = localPrediction?.id || userPrediction?.Id || userPrediction?.id;
                   
                   setIsSubmitting(true);
                   setSubmitError(null);
@@ -244,6 +255,20 @@ export default function MatchCard({ match, onUpdate }: MatchCardProps) {
                         awayGoals: parseInt(awayGoals, 10),
                       });
                     }
+                    
+                    // Feedback local inmediato: guardar la predicción en estado local
+                    // para que no sea necesario recargar la página
+                    setLocalPrediction({
+                      homeGoals: parseInt(homeGoals, 10),
+                      awayGoals: parseInt(awayGoals, 10),
+                      id: predictionId || 'temp',
+                    });
+                    
+                    // Limpiar error si lo había
+                    setSubmitError(null);
+                    
+                    // Opcional: refrescar datos desde el backend en segundo plano
+                    // sin afectar la posición del scroll
                     onUpdate?.();
                   } catch (err) {
                     const error = err as PredictionError;
@@ -258,15 +283,15 @@ export default function MatchCard({ match, onUpdate }: MatchCardProps) {
                   '&:disabled': { opacity: 0.6 },
                 }}
               >
-                {isSubmitting ? <CircularProgress size={24} /> : hasPrediction ? 'Actualizar' : 'Guardar'}
+                {isSubmitting ? <CircularProgress size={24} /> : effectiveHasPrediction ? 'Actualizar' : 'Guardar'}
               </Button>
             </Box>
 
             {/* Mostrar pronóstico guardado */}
-            {hasPrediction && (
+            {effectiveHasPrediction && (
               <Box sx={{ textAlign: 'center', mt: 1, mb: 1 }}>
                 <Typography variant="caption" color="text.secondary">
-                  Tu pronóstico: {userPrediction.homeGoals} - {userPrediction.awayGoals}
+                  Tu pronóstico: {localPrediction?.homeGoals ?? userPrediction?.homeGoals} - {localPrediction?.awayGoals ?? userPrediction?.awayGoals}
                 </Typography>
               </Box>
             )}
