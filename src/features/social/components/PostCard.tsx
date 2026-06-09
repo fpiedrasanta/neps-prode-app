@@ -14,7 +14,7 @@ interface PostCardProps {
 const StyledCard = styled(Card, {
   shouldForwardProp: (prop) => prop !== 'isSpecial'
 })<{ isSpecial?: boolean }>(({ isSpecial }) => ({
-  maxWidth: 480,
+  maxWidth: 760,
   width: '100%',
   borderRadius: 12,
   border: isSpecial 

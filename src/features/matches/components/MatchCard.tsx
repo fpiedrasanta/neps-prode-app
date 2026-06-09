@@ -15,7 +15,7 @@ interface MatchCardProps {
 const StyledCard = styled(Card, {
   shouldForwardProp: (prop) => prop !== 'hasPredictionStyle',
 })<{ hasPredictionStyle?: boolean }>(({ hasPredictionStyle }) => ({
-  maxWidth: 480,
+  maxWidth: 760,
   width: '100%',
   borderRadius: 12,
   border: hasPredictionStyle
