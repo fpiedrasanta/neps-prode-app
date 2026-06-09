@@ -117,7 +117,6 @@ const formatDate = (dateString: string): string => {
   });
 };
 
-
 export default function PostCard({ post }: PostCardProps) {
   const [comments, setComments] = useState<PostComment[]>(post.comments);
   const [commentInput, setCommentInput] = useState('');
@@ -163,9 +162,6 @@ export default function PostCard({ post }: PostCardProps) {
             </UserInfo>
           </CardHeader>
         )}
-
-
-
 
         {/* Preview del partido (solo para posts normales) */}
         {!isSpecial && post.matchId && (
@@ -246,7 +242,6 @@ export default function PostCard({ post }: PostCardProps) {
             dangerouslySetInnerHTML={{ __html: post.content }} 
           />
         )}
-
         
         {/* Comentarios (solo para posts normales) */}
         {!isSpecial && comments.length > 0 && (
